@@ -150,7 +150,7 @@
     <p class="aiuto">Le cose da ricordare, per te o per gli altri.</p>
     <div class="riga">
       <button class="chip" data-vista="miei">I miei memo</button>
-      <button class="chip" data-vista="comuni">Memo di tutti</button>
+      <button class="chip" data-vista="comuni">Per tutti</button>
       <button class="chip" data-vista="fatti">Già fatti</button>
     </div>
     <label>Memo di un collega</label>
@@ -336,7 +336,7 @@
     }).then(function (j) { disegnaMemo(j.memo, titolo, vista !== 'fatti'); })
       .catch(function (e) { $('lista').innerHTML = ''; $('elenco').hidden = true; avviso('Non riesco a leggere i memo', String(e.message || e)); });
   }
-  var TITOLI = { miei: 'I miei memo', comuni: 'Memo di tutti', fatti: 'Già fatti' };
+  var TITOLI = { miei: 'I miei memo', comuni: 'Memo per tutti', fatti: 'Già fatti' };
   document.querySelectorAll('[data-vista]').forEach(function (b) { b.onclick = function () { tocco(); var v = b.getAttribute('data-vista'); if (v === 'comuni') caricaMemo('di', 'tutti', TITOLI.comuni); else caricaMemo(v, '', TITOLI[v]); $('elenco').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
   $('vedi-memo').onclick = function () {
     var n = $('di-chi').value;
@@ -383,7 +383,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 13 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 14 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
