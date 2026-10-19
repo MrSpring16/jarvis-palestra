@@ -151,7 +151,7 @@
     <p class="aiuto">Le cose da ricordare, per te o per gli altri.</p>
     <div class="riga">
       <button class="chip" data-vista="miei">I miei memo</button>
-      <button class="chip" data-vista="comuni">Per tutti</button>
+      <button class="chip" data-vista="comuni">Memo per tutti</button>
       <button class="chip" data-vista="fatti">Già fatti</button>
     </div>
     <label>Memo di un collega</label>
@@ -393,7 +393,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 15 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 16 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
