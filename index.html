@@ -80,6 +80,7 @@
   body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   /* ---- parti nuove del 19/10/2026 sera: avviso "aprimi dal menu", foto del giro, schede dei memo ---- */
   [hidden] { display: none !important; }
+  .saluto { margin: -4px 2px 14px; color: var(--accento-testo); font: 500 14px/1.45 var(--font-testo); text-shadow: 0 0 10px rgba(242,179,61,.25); }
   .blocco { padding: 16px 15px; margin: 0 0 12px; border: 1px solid var(--accento); background: var(--pannello-forte); box-shadow: 0 0 16px rgba(242,179,61,.25); }
   .blocco h2 { margin: 0 0 6px; } .blocco p { margin: 0 0 8px; } .tenue { color: var(--tenue); font-size: 12px; word-break: break-word; }
   .foto { position: relative; overflow: hidden; border: 1px solid var(--bordo); background: #000; cursor: zoom-in; }
@@ -105,8 +106,9 @@
     <polygon class="l nucleo" stroke-width="2" stroke-linejoin="round" points="110,62 156,140 64,140" opacity=".6"/>
     <polygon class="cuore" points="95,98 125,98 110,124"/>
   </svg>
-  <div><h1>J.A.R.V.I.S.</h1><p id="saluto">assistente della palestra</p></div>
+  <div><h1>J.A.R.V.I.S.</h1><p>assistente della palestra</p></div>
 </header>
+<p class="saluto" id="saluto" hidden></p>
 
 <div id="blocco" class="blocco" hidden>
   <h2>Aprimi dal menu</h2>
@@ -319,8 +321,19 @@
   }
   document.querySelectorAll('#barra button').forEach(function (b) { b.onclick = function () { scheda(b.getAttribute('data-tab')); }; });
 
+  // ---- il saluto (Yuri, 19/10/2026: formale, con il titolo di ognuno; Martina "Boss") ----
+  var TITOLI_SALUTO = { Yuri: 'Signore', Barbara: 'Signora Barbara', Sara: 'Signorina Sara', Elisa: 'Signorina Elisa', Martina: 'Boss' };
+  function fascia() { var h = new Date().getHours(); return h >= 5 && h < 12 ? 'Buongiorno' : (h >= 12 && h < 18 ? 'Buon pomeriggio' : 'Buonasera'); }
+  function saluto(chi, settimana) {
+    var sett = settimana ? 'siamo alla settimana ' + settimana + ' del giro' : 'la settimana del giro non è ancora impostata';
+    var titolo = TITOLI_SALUTO[chi];
+    if (chi === 'Martina') return fascia() + ', Boss. Il giro, i memo e tutto il resto sono a Sua completa disposizione: ' + sett + '. Mi dica pure cosa serve.';
+    if (titolo) return fascia() + ', ' + titolo + '. Sono a Sua disposizione: ' + sett + '.';
+    return fascia() + ', ' + chi + '. ' + sett.charAt(0).toUpperCase() + sett.slice(1) + '.';
+  }
+
   // ---- avvio ----
-  var diag = 'pagina 8 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 9 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
@@ -331,7 +344,7 @@
   }).then(function (s) {
     if (!s) return;
     io = s.chi; nomi = s.nomi; $('blocco').hidden = true; $('app').hidden = false; $('barra').hidden = false;
-    $('saluto').textContent = 'ciao ' + s.chi + ' · settimana ' + (s.settimana || '?');
+    $('saluto').textContent = saluto(s.chi, s.settimana); $('saluto').hidden = false;
     $('riga-settimana').textContent = s.settimana ? 'Siamo nella settimana ' + s.settimana + ' del giro.' : 'La settimana del giro non è ancora impostata.';
     riempi($('di-chi'), nomi, true); riempi($('per-chi'), nomi, true);
     disegna(); $('diag').textContent = diag;
