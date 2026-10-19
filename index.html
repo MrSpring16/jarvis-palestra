@@ -121,17 +121,13 @@
 <div class="scheda" id="t-memo">
 <section id="s-memo">
   <h2>Memo</h2>
-  <p class="aiuto">Le cose da ricordare, per te o per gli altri. Cosa vuoi vedere?</p>
+  <p class="aiuto">Le cose da ricordare, per te o per gli altri.</p>
   <div class="riga">
     <button class="chip" data-cmd="/memo">I miei memo</button>
-    <button class="chip" data-cmd="/memo tutti">Bacheca (per tutti)</button>
-  </div>
-  <div class="riga">
-    <button class="chip" data-cmd="/cartelle">Cartelle</button>
-    <button class="chip" data-cmd="/memo tutto">Tutto, per cartella</button>
+    <button class="chip" data-cmd="/memo tutto">Tutti i memo</button>
     <button class="chip" data-cmd="/memo fatti">Già fatti</button>
   </div>
-  <p class="aiuto" style="margin:6px 0 0;font-size:12px"><b>I miei memo</b>: i tuoi e quelli per tutti. <b>Bacheca</b>: solo i memo scritti per tutti. <b>Cartelle</b>: una per persona, con quanti memo ha. <b>Tutto</b>: ogni memo di ogni collega.</p>
+  <p class="aiuto" style="margin:6px 0 0;font-size:12px"><b>I miei memo</b>: i tuoi e quelli per tutti. <b>Tutti i memo</b>: ogni memo di ogni collega. Sotto ogni lista, in chat, c'è il tasto <b>Fatto</b>: un tocco e il memo si toglie.</p>
   <label>Memo di un collega</label>
   <div class="riga"><select id="di-chi"></select><button class="chip" id="vedi-memo" style="flex:0 0 auto">Vedi</button></div>
   <label>Scrivi un memo per</label>
@@ -139,12 +135,6 @@
   <label>Il memo (massimo 400 lettere)</label>
   <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
   <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
-</section>
-
-<section id="s-fatto">
-  <h2>Memo fatto</h2>
-  <p class="aiuto">Il numero del memo lo vedi accanto al memo, nella lista.</p>
-  <div class="riga"><input id="num-fatto" type="number" inputmode="numeric" min="1" placeholder="Numero" style="flex:1"><button class="chip" id="vai-fatto" style="flex:0 0 auto">Segna fatto</button></div>
 </section>
 
 </div>
@@ -240,20 +230,15 @@
   $('scrivi-memo').onclick = function () {
     var t = $('testo-memo').value.replace(/\s+/g, ' ').trim();
     if (!t) { avviso('Scrivi prima il memo', 'Per esempio: portare il gesso sabato'); return; }
-    if (!$('per-chi').value) { avviso('Scegli per chi', 'Tocca la tendina Â«Scrivi un memo perÂ» e scegli chi lo deve ricevere'); return; }
+    if (!$('per-chi').value) { avviso('Scegli per chi', 'Tocca la tendina «Scrivi un memo per» e scegli chi lo deve ricevere'); return; }
     invia('/nuovomemo ' + $('per-chi').value + ' ' + t);
-  };
-  $('vai-fatto').onclick = function () {
-    var n = parseInt($('num-fatto').value, 10);
-    if (!(n > 0)) { avviso('Scrivi il numero del memo', 'Lo vedi accanto al memo, nella lista'); return; }
-    invia('/fatto ' + n);
   };
   riempi($('di-chi'), NOMI, true); riempi($('per-chi'), NOMI, true);
   if (!NOMI.length) { $('di-chi').innerHTML = '<option value="tutti">Tutti</option>'; $('per-chi').innerHTML = '<option value="tutti">Tutti</option>'; }
-  // la prima voce e' Â«Scegli...Â»: niente memo mandato alla persona sbagliata perche' era la prima della lista
+  // la prima voce e' «Scegli...»: niente memo mandato alla persona sbagliata perche' era la prima della lista
   ['di-chi', 'per-chi'].forEach(function (id) { var s = $(id); var o = document.createElement('option'); o.value = ''; o.textContent = 'Scegli...'; s.insertBefore(o, s.firstChild); s.value = ''; });
   disegna();
-  try { $("diag").textContent = "pagina 6 - " + (tg ? ("Telegram " + tg.platform + " v" + tg.version + (dentro ? " - dentro" : " - fuori")) : "senza Telegram"); } catch (e) {}
+  try { $("diag").textContent = "pagina 7 - " + (tg ? ("Telegram " + tg.platform + " v" + tg.version + (dentro ? " - dentro" : " - fuori")) : "senza Telegram"); } catch (e) {}
   window.onerror = function (m, s, l) { try { $("diag").textContent = "errore: " + m + " (riga " + l + ")"; } catch (e) {} };
   function scheda(nome) {
     ['giro', 'memo', 'altro'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
