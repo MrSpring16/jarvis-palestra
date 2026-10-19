@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Jarvis · palestra</title>
+<!--
+  Mini App di Telegram per i colleghi (19/10/2026, Yuri: "fai sia bot che mini app"). Una sola pagina statica, senza segreti:
+  i bottoni mandano al bot il comando di sempre (sendData) e la risposta arriva in chat. Stile di Jarvis: oro su nero, anello
+  che pulsa. Fuori da Telegram si apre lo stesso e mostra solo il comando che partirebbe (utile per provarla).
+  I nomi dei colleghi stanno in config.js (lo scrive bot.ps1 -ScriviMiniApp: solo nomi, mai id).
+-->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="config.js"></script>
+<style>
+  :root { --sfondo: #0a0907; --sfondo2: #191409; --pannello: rgba(30, 24, 12, .72); --bordo: rgba(242, 179, 61, .28); --bordo-forte: rgba(242, 179, 61, .65);
+          --accento: #f2b33d; --accento-testo: #ffd98a; --testo: #f1e6cf; --tenue: #a89877; --ok: #7fd49a; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--sfondo); color: var(--testo); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { min-height: 100vh; padding: 14px 14px calc(26px + env(safe-area-inset-bottom)); background:
+    radial-gradient(120% 60% at 50% -10%, var(--sfondo2), transparent 70%), repeating-linear-gradient(0deg, rgba(242,179,61,.035) 0 1px, transparent 1px 34px), var(--sfondo); }
+  header { display: flex; align-items: center; gap: 14px; padding: 6px 4px 14px; }
+  /* l'anello: un cuore luminoso che pulsa e onde che si allargano e sbiadiscono */
+  .anello { position: relative; width: 64px; height: 64px; flex: none; }
+  .anello i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accento); opacity: 0; animation: onda 3s ease-out infinite; }
+  .anello i:nth-child(2) { animation-delay: 1s; } .anello i:nth-child(3) { animation-delay: 2s; }
+  .anello b { position: absolute; inset: 22px; border-radius: 50%; background: radial-gradient(circle, #fff6dc 0, var(--accento) 55%, rgba(242,179,61,.2) 100%);
+              box-shadow: 0 0 18px 4px rgba(242,179,61,.6); animation: cuore 1.6s ease-in-out infinite; }
+  @keyframes onda { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(1.15); opacity: 0; } }
+  @keyframes cuore { 0%, 100% { transform: scale(.88); box-shadow: 0 0 12px 2px rgba(242,179,61,.45); } 50% { transform: scale(1.12); box-shadow: 0 0 26px 7px rgba(242,179,61,.75); } }
+  @media (prefers-reduced-motion: reduce) { .anello i, .anello b { animation: none; } .anello i { opacity: .35; transform: scale(.8); } }
+  h1 { margin: 0; font-size: 21px; letter-spacing: .22em; text-transform: uppercase; color: var(--accento-testo); text-shadow: 0 0 12px rgba(242,179,61,.5); }
+  header p { margin: 2px 0 0; color: var(--tenue); font-size: 13px; letter-spacing: .04em; }
+  section { margin: 0 0 12px; padding: 12px 12px 14px; background: var(--pannello); border: 1px solid var(--bordo);
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+  h2 { margin: 0 0 4px; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--accento); }
+  .aiuto { margin: 0 0 10px; color: var(--tenue); font-size: 13px; }
+  .riga { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+  button, select, textarea, input { font: inherit; color: var(--testo); }
+  .chip { flex: 1 1 auto; min-width: 48px; padding: 11px 10px; background: rgba(242,179,61,.06); border: 1px solid var(--bordo); cursor: pointer; text-align: center;
+          letter-spacing: .06em; transition: background .15s, border-color .15s, color .15s; }
+  .chip.on { background: linear-gradient(180deg, rgba(242,179,61,.32), rgba(242,179,61,.12)); border-color: var(--accento); color: var(--accento-testo); box-shadow: 0 0 10px rgba(242,179,61,.3); }
+  .gran { width: 100%; padding: 14px 12px; background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border: 1px solid var(--accento); color: var(--accento-testo);
+          font-weight: 700; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 14px rgba(242,179,61,.25); }
+  .gran:active, .chip:active { transform: scale(.98); }
+  select, textarea, input { width: 100%; padding: 11px 10px; background: rgba(0,0,0,.35); border: 1px solid var(--bordo); border-radius: 0; }
+  .riga select, .riga input { flex: 1 1 0; width: auto; min-width: 0; }
+  textarea { min-height: 76px; resize: vertical; }
+  label { display: block; margin: 8px 0 4px; font-size: 12px; color: var(--tenue); letter-spacing: .08em; }
+  #esito { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); padding: 12px 14px; background: #1c150a; border: 1px solid var(--accento);
+           color: var(--accento-testo); box-shadow: 0 0 18px rgba(242,179,61,.35); transform: translateY(160%); transition: transform .25s; z-index: 5; }
+  #esito.su { transform: none; } #esito small { display: block; color: var(--tenue); margin-top: 2px; }
+  /* (19/10/2026, Yuri: "chat prima, poi la mini app a schede") una scheda alla volta, barra fissa in basso */
+  .scheda { display: none; } .scheda.su { display: block; animation: entra .22s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .oggi { display: flex; gap: 8px; margin: 0 0 12px; } .oggi .gran { flex: 2; } .oggi .chip { flex: 1; }
+  nav#barra { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: #120e07; border-top: 1px solid var(--bordo-forte);
+              padding-bottom: env(safe-area-inset-bottom); z-index: 4; box-shadow: 0 -6px 18px rgba(0,0,0,.5); }
+  nav#barra button { flex: 1; padding: 12px 4px 10px; background: transparent; border: 0; border-top: 2px solid transparent; color: var(--tenue); cursor: pointer;
+                     font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+  nav#barra button svg { display: block; width: 22px; height: 22px; margin: 0 auto 4px; }
+  nav#barra button.su { color: var(--accento-testo); border-top-color: var(--accento); background: linear-gradient(180deg, rgba(242,179,61,.16), transparent); text-shadow: 0 0 10px rgba(242,179,61,.6); }
+  body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  #esito { bottom: calc(80px + env(safe-area-inset-bottom)); opacity: 0; visibility: hidden; transition: transform .25s, opacity .25s, visibility .25s; }
+  #esito.su { opacity: 1; visibility: visible; }
+  footer { text-align: center; color: var(--tenue); font-size: 12px; margin-top: 10px; letter-spacing: .06em; }
+</style>
+</head>
+<body>
+<header>
+  <div class="anello" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+  <div><h1>Jarvis</h1><p>l'assistente della palestra</p></div>
+</header>
+
+<main>
+<div class="scheda su" id="t-giro">
+<section id="s-oggi">
+  <h2>Oggi in palestra</h2>
+  <p class="aiuto">Il foglio del giro di oggi, con un tocco.</p>
+  <div class="oggi"><button class="gran" data-cmd="/giro oggi">Il giro di oggi</button><button class="chip" data-cmd="/giro domani">Domani</button></div>
+</section>
+
+<section id="s-settimana">
+  <h2>Settimana</h2>
+  <p class="aiuto">Il giro dura quattro settimane e poi ricomincia.</p>
+  <button class="gran" data-cmd="/settimana">In che settimana siamo?</button>
+</section>
+
+<section id="s-giro">
+  <h2>Giro attrezzi</h2>
+  <p class="aiuto">Scegli la settimana e il giorno, poi tocca il bottone. Ti arriva il foglio in chat.</p>
+  <label>Settimana</label>
+  <div class="riga" id="sett"></div>
+  <label>Giorno</label>
+  <div class="riga" id="giorno"></div>
+  <button class="gran" id="vai-giro">Mostra il giro</button>
+</section>
+
+</div>
+<div class="scheda" id="t-memo">
+<section id="s-memo">
+  <h2>Memo</h2>
+  <p class="aiuto">Le cose da ricordare per te o per gli altri.</p>
+  <div class="riga">
+    <button class="chip" data-cmd="/memo">I miei memo</button>
+    <button class="chip" data-cmd="/memo tutti">Memo di tutti</button>
+  </div>
+  <div class="riga">
+    <button class="chip" data-cmd="/cartelle">Le cartelle dei memo</button>
+    <button class="chip" data-cmd="/memo tutto">Tutti i memo</button>
+    <button class="chip" data-cmd="/memo fatti">Memo fatti</button>
+  </div>
+  <label>Memo di un collega</label>
+  <div class="riga"><select id="di-chi"></select><button class="chip" id="vedi-memo" style="flex:0 0 auto">Vedi</button></div>
+  <label>Scrivi un memo per</label>
+  <select id="per-chi"></select>
+  <label>Il memo (massimo 400 lettere)</label>
+  <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
+  <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
+</section>
+
+<section id="s-fatto">
+  <h2>Memo fatto</h2>
+  <p class="aiuto">Il numero del memo lo vedi accanto al memo, nella lista.</p>
+  <div class="riga"><input id="num-fatto" type="number" inputmode="numeric" min="1" placeholder="Numero" style="flex:1"><button class="chip" id="vai-fatto" style="flex:0 0 auto">Segna fatto</button></div>
+</section>
+
+</div>
+<div class="scheda" id="t-altro">
+<section>
+  <h2>Aiuto</h2>
+  <p class="aiuto">Tutti i comandi che Jarvis capisce, scritti in chat.</p>
+  <button class="gran" data-cmd="/aiuto">Aiuto: tutti i comandi</button>
+</section>
+<section>
+  <h2>Cosa sa fare</h2>
+  <p class="aiuto">Il giro attrezzi di ogni giorno, la settimana in corso e i memo per te e per gli altri. Se sbagli non succede niente di brutto.</p>
+</section>
+<footer>Niente password, niente app da installare.</footer>
+</div>
+</main>
+<nav id="barra" aria-label="Sezioni">
+  <button type="button" class="su" data-tab="giro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>Giro</button>
+  <button type="button" data-tab="memo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Memo</button>
+  <button type="button" data-tab="altro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>Aiuto</button>
+</nav>
+<div id="esito" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var dentro = !!(tg && tg.initData);
+  try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0a0907'); tg.setBackgroundColor && tg.setBackgroundColor('#0a0907'); } } catch (e) {}
+  var NOMI = (window.NOMI_COLLEGHI && window.NOMI_COLLEGHI.length) ? window.NOMI_COLLEGHI : [];
+  var GIORNI = [['oggi', 'Oggi'], ['domani', 'Domani'], ['lunedì', 'Lun'], ['martedì', 'Mar'], ['mercoledì', 'Mer'], ['giovedì', 'Gio'], ['venerdì', 'Ven'], ['sabato', 'Sab']];
+  var sett = '', giorno = 'oggi';
+
+  function $(id) { return document.getElementById(id); }
+  function chips(contenitore, voci, valore, quandoScelto) {
+    contenitore.innerHTML = '';
+    voci.forEach(function (v) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip' + (v[0] === valore ? ' on' : ''); b.textContent = v[1];
+      b.onclick = function () { quandoScelto(v[0] === valore ? '' : v[0]); };
+      contenitore.appendChild(b);
+    });
+  }
+  function disegna() {
+    chips($('sett'), [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']], sett, function (v) { sett = v; disegna(); });
+    chips($('giorno'), GIORNI, giorno, function (v) { giorno = v; disegna(); });
+  }
+  function riempi(sel, nomi, conTutti) {
+    sel.innerHTML = '';
+    nomi.concat(conTutti ? ['tutti'] : []).forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n === 'tutti' ? 'Tutti' : n; sel.appendChild(o); });
+  }
+  var timer = null;
+  function avviso(titolo, sotto) {
+    var e = $('esito'); e.innerHTML = ''; var t = document.createElement('span'); t.textContent = titolo; e.appendChild(t);
+    if (sotto) { var s = document.createElement('small'); s.textContent = sotto; e.appendChild(s); }
+    e.classList.add('su'); clearTimeout(timer); timer = setTimeout(function () { e.classList.remove('su'); }, 4200);
+  }
+  // il comando parte come dato verso il bot; Telegram chiude la pagina e la risposta compare in chat
+  function invia(cmd) {
+    if (dentro && tg.sendData) { try { tg.sendData(cmd); } catch (e) { avviso('Non sono riuscito a inviare', 'Riprova, o scrivi il comando in chat: ' + cmd); } }
+    else avviso('Anteprima: partirebbe questo comando', cmd);
+  }
+  document.querySelectorAll('[data-cmd]').forEach(function (b) { b.onclick = function () { invia(b.getAttribute('data-cmd')); }; });
+  $('vai-giro').onclick = function () {
+    var c = '/giro';
+    if (giorno) c += ' ' + giorno + (sett ? ' ' + sett : '');
+    else if (sett) c += ' settimana ' + sett;
+    invia(c);
+  };
+  $('vedi-memo').onclick = function () { invia('/memo ' + $('di-chi').value); };
+  $('scrivi-memo').onclick = function () {
+    var t = $('testo-memo').value.replace(/\s+/g, ' ').trim();
+    if (!t) { avviso('Scrivi prima il memo', 'Per esempio: portare il gesso sabato'); return; }
+    invia('/nuovomemo ' + $('per-chi').value + ' ' + t);
+  };
+  $('vai-fatto').onclick = function () {
+    var n = parseInt($('num-fatto').value, 10);
+    if (!(n > 0)) { avviso('Scrivi il numero del memo', 'Lo vedi accanto al memo, nella lista'); return; }
+    invia('/fatto ' + n);
+  };
+  riempi($('di-chi'), NOMI, true); riempi($('per-chi'), NOMI, true);
+  if (!NOMI.length) { $('di-chi').innerHTML = '<option value="tutti">Tutti</option>'; $('per-chi').innerHTML = '<option value="tutti">Tutti</option>'; }
+  disegna();
+  function scheda(nome) {
+    ['giro', 'memo', 'altro'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
+    document.querySelectorAll('#barra button').forEach(function (b) { b.classList.toggle('su', b.getAttribute('data-tab') === nome); });
+    try { sessionStorage.setItem('jarvis-mini-scheda', nome); } catch (e) {}
+    window.scrollTo(0, 0);
+    try { if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); } catch (e) {}
+  }
+  document.querySelectorAll('#barra button').forEach(function (b) { b.onclick = function () { scheda(b.getAttribute('data-tab')); }; });
+  try { var ult = sessionStorage.getItem('jarvis-mini-scheda'); if (ult && $('t-' + ult)) scheda(ult); } catch (e) {}
+})();
+</script>
+</body>
+</html>
