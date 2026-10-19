@@ -42,7 +42,7 @@
   @keyframes scint { 0%, 100% { opacity: .95; transform: scale(1); } 40% { opacity: .55; transform: scale(.88); } 60% { opacity: 1; transform: scale(1.12); } }
   @media (prefers-reduced-motion: reduce) { .prisma .arco, .prisma .arco2, .prisma .nucleo, .prisma .cuore { animation: none; } }
   h1 { margin: 0; font: 700 24px/1 var(--font-hud); letter-spacing: .34em; text-transform: uppercase; color: var(--accento-testo); text-shadow: 0 0 12px rgba(242,179,61,.45); }
-  header p { margin: 6px 0 0; color: var(--tenue); font: 600 11px/1 var(--font-hud); letter-spacing: .3em; text-transform: uppercase; }
+  header p { margin: 6px 0 0; color: var(--tenue); font: 600 14px/1 var(--font-hud); letter-spacing: .16em; text-transform: none; }
   /* pannelli a spigoli come i riquadri del PC: due angoli tagliati e una lineetta d'ambra al bordo */
   section { position: relative; margin: 0 0 12px; padding: 14px 13px 15px; background: var(--pannello); border: 1px solid var(--bordo);
             clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
@@ -106,7 +106,7 @@
     <polygon class="l nucleo" stroke-width="2" stroke-linejoin="round" points="110,62 156,140 64,140" opacity=".6"/>
     <polygon class="cuore" points="95,98 125,98 110,124"/>
   </svg>
-  <div><h1>J.A.R.V.I.S.</h1><p>protocollo assistente Flic</p></div>
+  <div><h1>J.A.R.V.I.S.</h1><p>Protocollo Assistente Flic</p></div>
 </header>
 <p class="saluto" id="saluto" hidden></p>
 
@@ -333,7 +333,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 10 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 11 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
