@@ -10,66 +10,87 @@
   che pulsa. Fuori da Telegram si apre lo stesso e mostra solo il comando che partirebbe (utile per provarla).
   I nomi dei colleghi stanno in config.js (lo scrive bot.ps1 -ScriviMiniApp: solo nomi, mai id).
 -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="config.js"></script>
 <style>
-  :root { --sfondo: #0a0907; --sfondo2: #191409; --pannello: rgba(30, 24, 12, .72); --bordo: rgba(242, 179, 61, .28); --bordo-forte: rgba(242, 179, 61, .65);
-          --accento: #f2b33d; --accento-testo: #ffd98a; --testo: #f1e6cf; --tenue: #a89877; --ok: #7fd49a; }
+
+  /* (19/10/2026 sera, Yuri: "stile Jarvis, un mix di telefono e PC, una sola modalita', colori standard") i colori sono quelli
+     della modalita' normale dell'app del PC (marrone-rosso scuro, ambra), i pannelli a spigoli e i titoli a lettere spaziate
+     vengono dal PC, il Prisma (triangolo, archi, nucleo che respira) dal telefono */
+  :root { --font-hud: "Rajdhani", "Segoe UI", system-ui, sans-serif; --font-testo: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+          --sfondo: #0b0505; --sfondo2: #24090b; --pannello: rgba(44, 12, 14, .62); --pannello-forte: rgba(60, 16, 18, .88);
+          --bordo: rgba(242, 179, 61, .2); --bordo-forte: rgba(242, 179, 61, .55);
+          --testo: #f6eadb; --tenue: #b89c86; --accento: #f2b33d; --accento-testo: #ffd98a; --ok: #5ff0a8; --griglia: rgba(242, 179, 61, .04); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: var(--sfondo); color: var(--testo); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  body { min-height: 100vh; padding: 14px 14px calc(26px + env(safe-area-inset-bottom)); background:
-    radial-gradient(120% 60% at 50% -10%, var(--sfondo2), transparent 70%), repeating-linear-gradient(0deg, rgba(242,179,61,.035) 0 1px, transparent 1px 34px), var(--sfondo); }
-  header { display: flex; align-items: center; gap: 14px; padding: 6px 4px 14px; }
-  /* l'anello: un cuore luminoso che pulsa e onde che si allargano e sbiadiscono */
-  .anello { position: relative; width: 64px; height: 64px; flex: none; }
-  .anello i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accento); opacity: 0; animation: onda 3s ease-out infinite; }
-  .anello i:nth-child(2) { animation-delay: 1s; } .anello i:nth-child(3) { animation-delay: 2s; }
-  .anello b { position: absolute; inset: 22px; border-radius: 50%; background: radial-gradient(circle, #fff6dc 0, var(--accento) 55%, rgba(242,179,61,.2) 100%);
-              box-shadow: 0 0 18px 4px rgba(242,179,61,.6); animation: cuore 1.6s ease-in-out infinite; }
-  @keyframes onda { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(1.15); opacity: 0; } }
-  @keyframes cuore { 0%, 100% { transform: scale(.88); box-shadow: 0 0 12px 2px rgba(242,179,61,.45); } 50% { transform: scale(1.12); box-shadow: 0 0 26px 7px rgba(242,179,61,.75); } }
-  @media (prefers-reduced-motion: reduce) { .anello i, .anello b { animation: none; } .anello i { opacity: .35; transform: scale(.8); } }
-  h1 { margin: 0; font-size: 21px; letter-spacing: .22em; text-transform: uppercase; color: var(--accento-testo); text-shadow: 0 0 12px rgba(242,179,61,.5); }
-  header p { margin: 2px 0 0; color: var(--tenue); font-size: 13px; letter-spacing: .04em; }
-  section { margin: 0 0 12px; padding: 12px 12px 14px; background: var(--pannello); border: 1px solid var(--bordo);
+  html, body { margin: 0; background: var(--sfondo); color: var(--testo); font: 15px/1.45 var(--font-testo); }
+  body { min-height: 100vh; padding: 12px 14px calc(26px + env(safe-area-inset-bottom)); background:
+    radial-gradient(120% 55% at 50% -8%, var(--sfondo2), transparent 72%),
+    linear-gradient(var(--griglia) 1px, transparent 1px) 0 0 / 32px 32px, linear-gradient(90deg, var(--griglia) 1px, transparent 1px) 0 0 / 32px 32px, var(--sfondo); }
+  /* testata: il Prisma a sinistra, il marchio a lettere spaziate come sul PC */
+  header { display: flex; align-items: center; gap: 14px; padding: 4px 2px 14px; border-bottom: 1px solid var(--bordo); margin-bottom: 14px; position: relative; }
+  header::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 88px; height: 2px; background: var(--accento); box-shadow: 0 0 10px var(--accento); }
+  .prisma { width: 76px; height: 76px; flex: none; overflow: visible; filter: drop-shadow(0 0 5px rgba(242,179,61,.75)) drop-shadow(0 0 14px rgba(242,179,61,.4)); }
+  .prisma .l { fill: none; stroke: var(--accento); }
+  .prisma .arco { transform-origin: 110px 110px; animation: gira 14s linear infinite; }
+  .prisma .arco2 { transform-origin: 110px 110px; animation: gira 22s linear infinite reverse; }
+  .prisma .nucleo { animation: respira 3.6s ease-in-out infinite; transform-origin: 110px 110px; }
+  .prisma .cuore { fill: var(--accento); stroke: none; animation: scint 2.4s ease-in-out infinite; transform-origin: 110px 105px; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  @keyframes respira { 50% { opacity: .45; } }
+  @keyframes scint { 0%, 100% { opacity: .95; transform: scale(1); } 40% { opacity: .55; transform: scale(.88); } 60% { opacity: 1; transform: scale(1.12); } }
+  @media (prefers-reduced-motion: reduce) { .prisma .arco, .prisma .arco2, .prisma .nucleo, .prisma .cuore { animation: none; } }
+  h1 { margin: 0; font: 700 24px/1 var(--font-hud); letter-spacing: .34em; text-transform: uppercase; color: var(--accento-testo); text-shadow: 0 0 12px rgba(242,179,61,.45); }
+  header p { margin: 6px 0 0; color: var(--tenue); font: 600 11px/1 var(--font-hud); letter-spacing: .3em; text-transform: uppercase; }
+  /* pannelli a spigoli come i riquadri del PC: due angoli tagliati e una lineetta d'ambra al bordo */
+  section { position: relative; margin: 0 0 12px; padding: 14px 13px 15px; background: var(--pannello); border: 1px solid var(--bordo);
             clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
-  h2 { margin: 0 0 4px; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--accento); }
+  section::before { content: ""; position: absolute; left: 0; top: 11px; width: 2px; height: 22px; background: var(--accento); box-shadow: 0 0 8px var(--accento); }
+  h2 { margin: 0 0 4px; font: 700 12px/1.2 var(--font-hud); letter-spacing: .3em; text-transform: uppercase; color: var(--accento); }
   .aiuto { margin: 0 0 10px; color: var(--tenue); font-size: 13px; }
   .riga { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
   button, select, textarea, input { font: inherit; color: var(--testo); }
-  .chip { flex: 1 1 auto; min-width: 48px; padding: 11px 10px; background: rgba(242,179,61,.06); border: 1px solid var(--bordo); cursor: pointer; text-align: center;
-          letter-spacing: .06em; transition: background .15s, border-color .15s, color .15s; }
-  .chip.on { background: linear-gradient(180deg, rgba(242,179,61,.32), rgba(242,179,61,.12)); border-color: var(--accento); color: var(--accento-testo); box-shadow: 0 0 10px rgba(242,179,61,.3); }
-  .gran { width: 100%; padding: 14px 12px; background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border: 1px solid var(--accento); color: var(--accento-testo);
-          font-weight: 700; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 14px rgba(242,179,61,.25); }
+  .chip { flex: 1 1 auto; min-width: 48px; padding: 11px 10px; background: rgba(242,179,61,.05); border: 1px solid var(--bordo); border-radius: 3px; cursor: pointer; text-align: center;
+          font: 600 14px/1.1 var(--font-hud); letter-spacing: .1em; text-transform: uppercase; transition: background .15s, border-color .15s, color .15s, box-shadow .15s; }
+  .chip.on { background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border-color: var(--accento); color: var(--accento-testo); box-shadow: 0 0 12px rgba(242,179,61,.3); }
+  .gran { width: 100%; padding: 14px 12px; background: linear-gradient(180deg, rgba(242,179,61,.32), rgba(242,179,61,.1)); border: 1px solid var(--accento); border-radius: 3px; color: var(--accento-testo);
+          font: 700 16px/1.1 var(--font-hud); letter-spacing: .2em; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 16px rgba(242,179,61,.25), inset 0 0 0 1px rgba(255,217,138,.08); }
   .gran:active, .chip:active { transform: scale(.98); }
-  select, textarea, input { width: 100%; padding: 11px 10px; background: rgba(0,0,0,.35); border: 1px solid var(--bordo); border-radius: 0; }
+  select, textarea, input { width: 100%; padding: 11px 10px; background: rgba(0,0,0,.4); border: 1px solid var(--bordo); border-radius: 3px; }
+  select:focus, textarea:focus, input:focus { outline: none; border-color: var(--accento); box-shadow: 0 0 10px rgba(242,179,61,.25); }
   .riga select, .riga input { flex: 1 1 0; width: auto; min-width: 0; }
   textarea { min-height: 76px; resize: vertical; }
-  label { display: block; margin: 8px 0 4px; font-size: 12px; color: var(--tenue); letter-spacing: .08em; }
-  #esito { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); padding: 12px 14px; background: #1c150a; border: 1px solid var(--accento);
-           color: var(--accento-testo); box-shadow: 0 0 18px rgba(242,179,61,.35); transform: translateY(160%); transition: transform .25s; z-index: 5; }
-  #esito.su { transform: none; } #esito small { display: block; color: var(--tenue); margin-top: 2px; }
-  /* (19/10/2026, Yuri: "chat prima, poi la mini app a schede") una scheda alla volta, barra fissa in basso */
+  label { display: block; margin: 9px 0 4px; font: 600 11px/1 var(--font-hud); color: var(--tenue); letter-spacing: .24em; text-transform: uppercase; }
+  #esito { position: fixed; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); padding: 12px 14px; background: var(--pannello-forte); border: 1px solid var(--accento);
+           color: var(--accento-testo); box-shadow: 0 0 18px rgba(242,179,61,.35); transform: translateY(160%); transition: transform .25s, opacity .25s, visibility .25s; z-index: 5;
+           font-family: var(--font-hud); font-weight: 600; letter-spacing: .06em; opacity: 0; visibility: hidden; }
+  #esito.su { transform: none; opacity: 1; visibility: visible; } #esito small { display: block; color: var(--tenue); margin-top: 2px; font: 400 12px var(--font-testo); letter-spacing: 0; }
+  footer { text-align: center; color: var(--tenue); font: 600 11px/1.3 var(--font-hud); margin-top: 10px; letter-spacing: .22em; text-transform: uppercase; }
+  /* una scheda alla volta, barra fissa in basso */
   .scheda { display: none; } .scheda.su { display: block; animation: entra .22s ease-out; }
   @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .oggi { display: flex; gap: 8px; margin: 0 0 12px; } .oggi .gran { flex: 2; } .oggi .chip { flex: 1; }
-  nav#barra { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: #120e07; border-top: 1px solid var(--bordo-forte);
+  .oggi { display: flex; gap: 8px; margin: 0 0 4px; } .oggi .gran { flex: 2; } .oggi .chip { flex: 1; }
+  nav#barra { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: rgba(14, 6, 6, .96); border-top: 1px solid var(--bordo-forte);
               padding-bottom: env(safe-area-inset-bottom); z-index: 4; box-shadow: 0 -6px 18px rgba(0,0,0,.5); }
-  nav#barra button { flex: 1; padding: 12px 4px 10px; background: transparent; border: 0; border-top: 2px solid transparent; color: var(--tenue); cursor: pointer;
-                     font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
-  nav#barra button svg { display: block; width: 22px; height: 22px; margin: 0 auto 4px; }
+  nav#barra button { flex: 1; padding: 11px 4px 9px; background: transparent; border: 0; border-top: 2px solid transparent; color: var(--tenue); cursor: pointer;
+                     font: 700 12px/1 var(--font-hud); letter-spacing: .26em; text-transform: uppercase; }
+  nav#barra button svg { display: block; width: 22px; height: 22px; margin: 0 auto 5px; }
   nav#barra button.su { color: var(--accento-testo); border-top-color: var(--accento); background: linear-gradient(180deg, rgba(242,179,61,.16), transparent); text-shadow: 0 0 10px rgba(242,179,61,.6); }
   body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  #esito { bottom: calc(80px + env(safe-area-inset-bottom)); opacity: 0; visibility: hidden; transition: transform .25s, opacity .25s, visibility .25s; }
-  #esito.su { opacity: 1; visibility: visible; }
-  footer { text-align: center; color: var(--tenue); font-size: 12px; margin-top: 10px; letter-spacing: .06em; }
 </style>
 </head>
 <body>
 <header>
-  <div class="anello" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
-  <div><h1>Jarvis</h1><p>l'assistente della palestra</p></div>
+  <svg class="prisma" viewBox="0 0 220 220" aria-hidden="true">
+    <circle class="l" cx="110" cy="110" r="104" stroke-width="1.2" opacity=".35"/>
+    <g class="arco"><path class="l" d="M110 12 A98 98 0 0 1 200 70" stroke-width="7" stroke-linecap="round"/><path class="l" d="M18 150 A98 98 0 0 1 20 74" stroke-width="7" stroke-linecap="round"/></g>
+    <g class="arco2"><circle class="l" cx="110" cy="110" r="86" stroke-width="2" stroke-dasharray="14 22" opacity=".7"/></g>
+    <polygon class="l" stroke-width="5" stroke-linejoin="round" points="110,40 172,148 48,148"/>
+    <polygon class="l nucleo" stroke-width="2" stroke-linejoin="round" points="110,62 156,140 64,140" opacity=".6"/>
+    <polygon class="cuore" points="95,98 125,98 110,124"/>
+  </svg>
+  <div><h1>J.A.R.V.I.S.</h1><p>assistente della palestra</p></div>
 </header>
 
 <main>
@@ -150,7 +171,7 @@
 (function () {
   var tg = window.Telegram && window.Telegram.WebApp;
   var dentro = !!(tg && tg.initData);
-  try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0a0907'); tg.setBackgroundColor && tg.setBackgroundColor('#0a0907'); } } catch (e) {}
+  try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0b0505'); tg.setBackgroundColor && tg.setBackgroundColor('#0b0505'); } } catch (e) {}
   var NOMI = (window.NOMI_COLLEGHI && window.NOMI_COLLEGHI.length) ? window.NOMI_COLLEGHI : [];
   var GIORNI = [['oggi', 'Oggi'], ['domani', 'Domani'], ['lunedì', 'Lun'], ['martedì', 'Mar'], ['mercoledì', 'Mer'], ['giovedì', 'Gio'], ['venerdì', 'Ven'], ['sabato', 'Sab']];
   var sett = '', giorno = 'oggi';
