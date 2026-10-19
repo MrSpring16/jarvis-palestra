@@ -83,7 +83,8 @@
   #viewer { position: fixed; inset: 0; z-index: 30; background: #000; touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
   #viewer img { position: absolute; left: 50%; top: 50%; max-width: 100%; max-height: 100%; transform: translate(-50%, -50%); transform-origin: center center; will-change: transform; -webkit-user-drag: none; pointer-events: none; }
   #viewer .chiudi { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 12px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--bordo-forte); background: rgba(20,8,8,.78); color: var(--accento-testo); font-size: 18px; cursor: pointer; }
-  #viewer .v-titolo { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 14px; right: 70px; z-index: 2; color: var(--accento-testo); font: 700 14px/1.2 var(--font-hud); letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 0 8px #000; pointer-events: none; }
+  #viewer .chiudi.ruota { right: 64px; font-size: 22px; }
+  #viewer .v-titolo { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 14px; right: 120px; z-index: 2; color: var(--accento-testo); font: 700 14px/1.2 var(--font-hud); letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 0 8px #000; pointer-events: none; }
   #viewer .v-aiuto { position: absolute; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); text-align: center; color: var(--tenue); font: 500 11px var(--font-testo); pointer-events: none; transition: opacity .6s; }
   #viewer.nascondi-aiuto .v-aiuto { opacity: 0; }
   .saluto { margin: -4px 2px 14px; color: var(--accento-testo); font: 500 14px/1.45 var(--font-testo); text-shadow: 0 0 10px rgba(242,179,61,.25); }
@@ -187,9 +188,10 @@
 </nav>
 <div id="viewer" hidden>
   <img id="viewer-img" alt="Foglio del giro attrezzi">
+  <button type="button" class="chiudi ruota" id="viewer-ruota" aria-label="Ruota la foto">&#8635;</button>
   <button type="button" class="chiudi" id="viewer-chiudi" aria-label="Chiudi">&#10005;</button>
   <div class="v-titolo" id="viewer-titolo"></div>
-  <div class="v-aiuto">Pizzica per ingrandire, doppio tocco per lo zoom, trascina in basso per chiudere</div>
+  <div class="v-aiuto">Pizzica per ingrandire, doppio tocco per lo zoom, il tasto in alto per ruotare, trascina in basso per chiudere</div>
 </div>
 <div id="esito" role="status" aria-live="polite"></div>
 
@@ -263,15 +265,18 @@
     mostraGiro(s, g ? g.toUpperCase() : '', 'Il giro' + (s ? ' · settimana ' + s : '') + (g ? ' · ' + (GIORNI.filter(function (x) { return x[0] === g; })[0] || [0, g])[1] : ''));
   };
   // ---- il visore a schermo intero: pizzico, doppio tocco, trascinamento; in basso per chiudere; il tasto indietro di Telegram chiude ----
-  var vw = $('viewer'), vi = $('viewer-img'), V = { s: 1, x: 0, y: 0 }, punti = {}, pinch = null, ultimoTap = 0, mosso = false, cadi = 0;
-  function applica() { vi.style.transform = 'translate(-50%, -50%) translate(' + V.x + 'px, ' + V.y + 'px) scale(' + V.s + ')'; }
-  function limiti() { var mx = Math.max(0, (vi.offsetWidth * V.s - window.innerWidth) / 2), my = Math.max(0, (vi.offsetHeight * V.s - window.innerHeight) / 2); V.x = Math.max(-mx, Math.min(mx, V.x)); V.y = Math.max(-my, Math.min(my, V.y)); }
+  var vw = $('viewer'), vi = $('viewer-img'), V = { s: 1, x: 0, y: 0, r: 0 }, punti = {}, pinch = null, ultimoTap = 0, mosso = false, cadi = 0;
+  // dopo un quarto di giro la foto occupa h0 x w0: il fattore k la rimette dentro lo schermo (a 0 e 180 gradi la adatta gia' il CSS)
+  function misure() { var w0 = vi.offsetWidth, h0 = vi.offsetHeight, q = V.r % 180 !== 0, bw = q ? h0 : w0, bh = q ? w0 : h0; return { bw: bw, bh: bh, k: q && bw && bh ? Math.min(window.innerWidth / bw, window.innerHeight / bh) : 1 }; }
+  function applica() { var m = misure(); vi.style.transform = 'translate(-50%, -50%) translate(' + V.x + 'px, ' + V.y + 'px) scale(' + (V.s * m.k) + ') rotate(' + V.r + 'deg)'; }
+  function limiti() { var m = misure(), mx = Math.max(0, (m.bw * m.k * V.s - window.innerWidth) / 2), my = Math.max(0, (m.bh * m.k * V.s - window.innerHeight) / 2); V.x = Math.max(-mx, Math.min(mx, V.x)); V.y = Math.max(-my, Math.min(my, V.y)); }
   function apriVisore() {
     if (!$('img-giro').getAttribute('src')) return;
     $('viewer-img').src = $('img-giro').src; $('viewer-titolo').textContent = $('titolo-giro').textContent;
-    V = { s: 1, x: 0, y: 0 }; applica(); vw.style.background = '#000'; vw.classList.remove('nascondi-aiuto'); vw.hidden = false; document.body.style.overflow = 'hidden';
+    V = { s: 1, x: 0, y: 0, r: 0 }; applica(); vw.style.background = '#000'; vw.classList.remove('nascondi-aiuto'); vw.hidden = false; document.body.style.overflow = 'hidden';
     setTimeout(function () { vw.classList.add('nascondi-aiuto'); }, 2600);
     try { tg.BackButton.show(); tg.BackButton.onClick(chiudiVisore); } catch (e) {}
+    try { tg.unlockOrientation && tg.unlockOrientation(); } catch (e) {}   // se il telefono ha la rotazione automatica, la pagina la segue
   }
   function chiudiVisore() { vw.hidden = true; document.body.style.overflow = ''; punti = {}; pinch = null; try { tg.BackButton.hide(); tg.BackButton.offClick(chiudiVisore); } catch (e) {} }
   function distanza() { var k = Object.keys(punti); if (k.length < 2) return 0; var a = punti[k[0]], b = punti[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); }
@@ -300,6 +305,11 @@
   vw.addEventListener('pointerup', finePunto); vw.addEventListener('pointercancel', finePunto);
   $('viewer-chiudi').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
   $('viewer-chiudi').onclick = chiudiVisore;
+  $('viewer-ruota').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+  $('viewer-ruota').onclick = function () { V.r = (V.r + 90) % 360; V.s = 1; V.x = 0; V.y = 0; applica(); try { tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {} };
+  // quando il telefono ruota cambia la misura dello schermo: si rimette in ordine la posizione (la foto si riadatta da sola)
+  function ridimensiona() { if (vw.hidden) return; limiti(); applica(); }
+  window.addEventListener('resize', ridimensiona); window.addEventListener('orientationchange', function () { setTimeout(ridimensiona, 200); });
   $('foto').onclick = apriVisore;
 
   // ---- memo ----
@@ -383,7 +393,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 14 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 15 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
