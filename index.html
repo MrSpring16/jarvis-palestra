@@ -157,7 +157,7 @@
   <h2>Cosa sa fare</h2>
   <p class="aiuto">Il giro attrezzi di ogni giorno, la settimana in corso e i memo per te e per gli altri. Se sbagli non succede niente di brutto.</p>
 </section>
-<footer>Niente password, niente app da installare.</footer>
+<footer>Niente password, niente app da installare.<br><span id="diag" style="opacity:.6;letter-spacing:.08em;text-transform:none"></span></footer>
 </div>
 </main>
 <nav id="barra" aria-label="Sezioni">
@@ -235,6 +235,8 @@
   riempi($('di-chi'), NOMI, true); riempi($('per-chi'), NOMI, true);
   if (!NOMI.length) { $('di-chi').innerHTML = '<option value="tutti">Tutti</option>'; $('per-chi').innerHTML = '<option value="tutti">Tutti</option>'; }
   disegna();
+  try { $("diag").textContent = "pagina 4 - " + (tg ? ("Telegram " + tg.platform + " v" + tg.version + (dentro ? " - dentro" : " - fuori")) : "senza Telegram"); } catch (e) {}
+  window.onerror = function (m, s, l) { try { $("diag").textContent = "errore: " + m + " (riga " + l + ")"; } catch (e) {} };
   function scheda(nome) {
     ['giro', 'memo', 'altro'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
     document.querySelectorAll('#barra button').forEach(function (b) { b.classList.toggle('su', b.getAttribute('data-tab') === nome); });
