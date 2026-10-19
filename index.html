@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Jarvis · palestra</title>
 <!--
-  Mini App di Telegram per i colleghi (19/10/2026, Yuri: "fai sia bot che mini app"). Una sola pagina statica, senza segreti:
-  i bottoni mandano al bot il comando di sempre (sendData) e la risposta arriva in chat. Stile di Jarvis: oro su nero, anello
-  che pulsa. Fuori da Telegram si apre lo stesso e mostra solo il comando che partirebbe (utile per provarla).
-  I nomi dei colleghi stanno in config.js (lo scrive bot.ps1 -ScriviMiniApp: solo nomi, mai id).
+  Mini App di Telegram per i colleghi (19/10/2026). Dalla sera del 19/10/2026 parla con il servizio su Cloudflare
+  (https://jarvis-palestra.yuri-palestra.workers.dev): il giro, i memo e le risposte restano DENTRO la pagina, senza tornare alla chat,
+  e funzionano anche a PC spento. Chi e' lo riconosce il servizio dalla firma che Telegram mette nell'apertura (initData): per questo la
+  pagina va aperta dal bottone del MENU a sinistra del campo di scrittura. Stile Jarvis: colori della modalita' normale del PC, pannelli a
+  spigoli, Prisma del telefono. I nomi dei colleghi stanno in config.js (solo nomi di battesimo, mai id).
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="config.js"></script>
 <style>
-
-  /* (19/10/2026 sera, Yuri: "stile Jarvis, un mix di telefono e PC, una sola modalita', colori standard") i colori sono quelli
+/* (19/10/2026 sera, Yuri: "stile Jarvis, un mix di telefono e PC, una sola modalita', colori standard") i colori sono quelli
      della modalita' normale dell'app del PC (marrone-rosso scuro, ambra), i pannelli a spigoli e i titoli a lettere spaziate
      vengono dal PC, il Prisma (triangolo, archi, nucleo che respira) dal telefono */
   :root { --font-hud: "Rajdhani", "Segoe UI", system-ui, sans-serif; --font-testo: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -78,6 +78,21 @@
   nav#barra button svg { display: block; width: 22px; height: 22px; margin: 0 auto 5px; }
   nav#barra button.su { color: var(--accento-testo); border-top-color: var(--accento); background: linear-gradient(180deg, rgba(242,179,61,.16), transparent); text-shadow: 0 0 10px rgba(242,179,61,.6); }
   body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  /* ---- parti nuove del 19/10/2026 sera: avviso "aprimi dal menu", foto del giro, schede dei memo ---- */
+  [hidden] { display: none !important; }
+  .blocco { padding: 16px 15px; margin: 0 0 12px; border: 1px solid var(--accento); background: var(--pannello-forte); box-shadow: 0 0 16px rgba(242,179,61,.25); }
+  .blocco h2 { margin: 0 0 6px; } .blocco p { margin: 0 0 8px; } .tenue { color: var(--tenue); font-size: 12px; word-break: break-word; }
+  .foto { position: relative; overflow: hidden; border: 1px solid var(--bordo); background: #000; cursor: zoom-in; }
+  .foto img { display: block; width: 100%; height: auto; }
+  .foto.zoom { overflow: auto; cursor: zoom-out; max-height: 70vh; } .foto.zoom img { width: 230%; max-width: none; }
+  .foto.carica { min-height: 140px; } .foto.carica::after { content: "Carico…"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--tenue); font: 600 13px var(--font-hud); letter-spacing: .24em; text-transform: uppercase; }
+  .memo { position: relative; padding: 11px 76px 11px 12px; margin: 8px 0; background: rgba(0,0,0,.28); border: 1px solid var(--bordo); border-left: 3px solid var(--accento); transition: opacity .25s, transform .25s; }
+  .memo.esce { opacity: 0; transform: translateX(30px); } .memo.fatto { opacity: .65; border-left-color: var(--ok); }
+  .memo-testo { font-size: 15px; word-break: break-word; }
+  .memo-meta { margin-top: 4px; color: var(--tenue); font: 600 11px/1.3 var(--font-hud); letter-spacing: .12em; text-transform: uppercase; }
+  .fatto-b { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 8px 12px; background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border: 1px solid var(--accento); border-radius: 3px; color: var(--accento-testo); font: 700 13px var(--font-hud); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+  .fatto-b:disabled { opacity: .5; }
+
 </style>
 </head>
 <body>
@@ -90,68 +105,74 @@
     <polygon class="l nucleo" stroke-width="2" stroke-linejoin="round" points="110,62 156,140 64,140" opacity=".6"/>
     <polygon class="cuore" points="95,98 125,98 110,124"/>
   </svg>
-  <div><h1>J.A.R.V.I.S.</h1><p>assistente della palestra</p></div>
+  <div><h1>J.A.R.V.I.S.</h1><p id="saluto">assistente della palestra</p></div>
 </header>
 
-<main>
+<div id="blocco" class="blocco" hidden>
+  <h2>Aprimi dal menu</h2>
+  <p>Per mostrarti il giro e i memo devo sapere chi sei: apri Jarvis dal bottone <b>Menu</b> a sinistra del campo di scrittura, nella chat con il bot. Se sei già in quella chat e vedi questo avviso, chiudi e riapri la pagina.</p>
+  <p id="blocco-dettaglio" class="tenue"></p>
+</div>
+
+<main id="app" hidden>
 <div class="scheda su" id="t-giro">
-<section id="s-oggi">
-  <h2>Oggi in palestra</h2>
-  <p class="aiuto">Il foglio del giro di oggi, con un tocco.</p>
-  <div class="oggi"><button class="gran" data-cmd="/giro oggi">Il giro di oggi</button><button class="chip" data-cmd="/giro domani">Domani</button></div>
-</section>
-
-<section id="s-settimana">
-  <h2>Settimana</h2>
-  <p class="aiuto">Il giro dura quattro settimane e poi ricomincia.</p>
-  <button class="gran" data-cmd="/settimana">In che settimana siamo?</button>
-</section>
-
-<section id="s-giro">
-  <h2>Giro attrezzi</h2>
-  <p class="aiuto">Scegli la settimana e il giorno, poi tocca il bottone. Ti arriva il foglio in chat.</p>
-  <label>Settimana</label>
-  <div class="riga" id="sett"></div>
-  <label>Giorno</label>
-  <div class="riga" id="giorno"></div>
-  <button class="gran" id="vai-giro">Mostra il giro</button>
-</section>
-
+  <section>
+    <h2>Oggi in palestra</h2>
+    <div class="oggi"><button class="gran" id="b-oggi">Il giro di oggi</button><button class="chip" id="b-domani">Domani</button></div>
+    <p class="aiuto" id="riga-settimana"></p>
+  </section>
+  <section>
+    <h2>Un altro giorno</h2>
+    <label>Settimana</label>
+    <div class="riga" id="sett"></div>
+    <label>Giorno</label>
+    <div class="riga" id="giorno"></div>
+    <button class="gran" id="vai-giro">Mostra il giro</button>
+  </section>
+  <section id="vetrina" hidden>
+    <h2 id="titolo-giro">Il giro</h2>
+    <div class="foto" id="foto"><img id="img-giro" alt="Foglio del giro attrezzi"></div>
+    <p class="aiuto" style="margin:8px 0 0;font-size:12px">Tocca la foto per ingrandirla, tocca ancora per rimpicciolirla.</p>
+  </section>
 </div>
+
 <div class="scheda" id="t-memo">
-<section id="s-memo">
-  <h2>Memo</h2>
-  <p class="aiuto">Le cose da ricordare, per te o per gli altri.</p>
-  <div class="riga">
-    <button class="chip" data-cmd="/memo">I miei memo</button>
-    <button class="chip" data-cmd="/memo tutto">Tutti i memo</button>
-    <button class="chip" data-cmd="/memo fatti">Già fatti</button>
-  </div>
-  <p class="aiuto" style="margin:6px 0 0;font-size:12px"><b>I miei memo</b>: i tuoi e quelli per tutti. <b>Tutti i memo</b>: ogni memo di ogni collega. Sotto ogni lista, in chat, c'è il tasto <b>Fatto</b>: un tocco e il memo si toglie.</p>
-  <label>Memo di un collega</label>
-  <div class="riga"><select id="di-chi"></select><button class="chip" id="vedi-memo" style="flex:0 0 auto">Vedi</button></div>
-  <label>Scrivi un memo per</label>
-  <select id="per-chi"></select>
-  <label>Il memo (massimo 400 lettere)</label>
-  <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
-  <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
-</section>
+  <section>
+    <h2>Memo</h2>
+    <p class="aiuto">Le cose da ricordare, per te o per gli altri.</p>
+    <div class="riga">
+      <button class="chip" data-vista="miei">I miei memo</button>
+      <button class="chip" data-vista="tutti">Tutti i memo</button>
+      <button class="chip" data-vista="fatti">Già fatti</button>
+    </div>
+    <label>Memo di un collega</label>
+    <div class="riga"><select id="di-chi"></select><button class="chip" id="vedi-memo" style="flex:0 0 auto">Vedi</button></div>
+  </section>
+  <section id="elenco" hidden>
+    <h2 id="titolo-elenco">Memo</h2>
+    <div id="lista"></div>
+  </section>
+  <section>
+    <h2>Scrivi un memo</h2>
+    <label>Per chi</label>
+    <select id="per-chi"></select>
+    <label>Il memo (massimo 400 lettere)</label>
+    <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
+    <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
+  </section>
+</div>
 
-</div>
 <div class="scheda" id="t-altro">
-<section>
-  <h2>Aiuto</h2>
-  <p class="aiuto">Tutti i comandi che Jarvis capisce, scritti in chat.</p>
-  <button class="gran" data-cmd="/aiuto">Aiuto: tutti i comandi</button>
-</section>
-<section>
-  <h2>Cosa sa fare</h2>
-  <p class="aiuto">Il giro attrezzi di ogni giorno, la settimana in corso e i memo per te e per gli altri. Se sbagli non succede niente di brutto.</p>
-</section>
-<footer>Niente password, niente app da installare.<br><span id="diag" style="opacity:.6;letter-spacing:.08em;text-transform:none"></span></footer>
+  <section>
+    <h2>Cosa sa fare</h2>
+    <p class="aiuto">Il giro attrezzi di ogni giorno, la settimana in corso e i memo per te e per gli altri. Tutto qui dentro: non serve tornare alla chat. Se sbagli non succede niente di brutto.</p>
+    <p class="aiuto">In chat puoi anche scrivere i comandi a mano, per esempio <b>/giro</b> o <b>/memo</b>: il bot risponde anche lì.</p>
+  </section>
 </div>
+<footer>Niente password, niente app da installare.<br><span id="diag" style="opacity:.6;letter-spacing:.08em;text-transform:none"></span></footer>
 </main>
-<nav id="barra" aria-label="Sezioni">
+
+<nav id="barra" aria-label="Sezioni" hidden>
   <button type="button" class="su" data-tab="giro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>Giro</button>
   <button type="button" data-tab="memo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Memo</button>
   <button type="button" data-tab="altro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>Aiuto</button>
@@ -160,23 +181,40 @@
 
 <script>
 (function () {
+  var API = 'https://jarvis-palestra.yuri-palestra.workers.dev';
   var tg = window.Telegram && window.Telegram.WebApp;
-  // (19/10/2026, "i tasti dicono solo l'anteprima") dalla tastiera di Telegram initData/initDataUnsafe sono VUOTI (documentazione
-  // Telegram: "empty if launched from a keyboard button"): non si puo' riconoscere Telegram da li'. Si guarda la piattaforma,
-  // che lo script di Telegram legge dal link di apertura ("unknown" fuori da Telegram).
-  var dentro = !!(tg && ((tg.platform && tg.platform !== 'unknown') || tg.initData));
+  var initData = (tg && tg.initData) || '';
   try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0b0505'); tg.setBackgroundColor && tg.setBackgroundColor('#0b0505'); } } catch (e) {}
-  var NOMI = (window.NOMI_COLLEGHI && window.NOMI_COLLEGHI.length) ? window.NOMI_COLLEGHI : [];
-  var GIORNI = [['oggi', 'Oggi'], ['domani', 'Domani'], ['lunedì', 'Lun'], ['martedì', 'Mar'], ['mercoledì', 'Mer'], ['giovedì', 'Gio'], ['venerdì', 'Ven'], ['sabato', 'Sab']];
-  var sett = '', giorno = 'oggi';
-
   function $(id) { return document.getElementById(id); }
+  var GIORNI = [['oggi', 'Oggi'], ['domani', 'Domani'], ['lun', 'Lun'], ['mar', 'Mar'], ['mer', 'Mer'], ['gio', 'Gio'], ['ven', 'Ven'], ['sab', 'Sab']];
+  var NOMI_GIORNO = { LUN: 'lunedì', MAR: 'martedì', MER: 'mercoledì', GIO: 'giovedì', VEN: 'venerdì', SAB: 'sabato' };
+  var sett = '', giorno = 'oggi', io = '', nomi = [], vistaCorrente = null;
+
+  // ---- avviso in basso ----
+  var timer = null;
+  function avviso(titolo, sotto) {
+    var e = $('esito'); e.innerHTML = ''; var t = document.createElement('span'); t.textContent = titolo; e.appendChild(t);
+    if (sotto) { var s = document.createElement('small'); s.textContent = sotto; e.appendChild(s); }
+    e.classList.add('su'); clearTimeout(timer); timer = setTimeout(function () { e.classList.remove('su'); }, 3600);
+  }
+  function tocco() { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e) {} }
+
+  // ---- il servizio ----
+  function chiama(percorso, opz) {
+    opz = opz || {};
+    var intest = { 'X-Init-Data': initData };
+    if (opz.corpo) intest['Content-Type'] = 'application/json';
+    return fetch(API + percorso, { method: opz.corpo ? 'POST' : 'GET', headers: intest, body: opz.corpo ? JSON.stringify(opz.corpo) : undefined });
+  }
+  function errore(r) { return r.json().then(function (j) { return j.errore || 'errore'; }, function () { return 'errore ' + r.status; }); }
+
+  // ---- giro ----
   function chips(contenitore, voci, valore, quandoScelto) {
     contenitore.innerHTML = '';
     voci.forEach(function (v) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'chip' + (v[0] === valore ? ' on' : ''); b.textContent = v[1];
-      b.onclick = function () { quandoScelto(v[0] === valore ? '' : v[0]); };
+      b.onclick = function () { tocco(); quandoScelto(v[0] === valore ? '' : v[0]); };
       contenitore.appendChild(b);
     });
   }
@@ -184,71 +222,121 @@
     chips($('sett'), [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']], sett, function (v) { sett = v; disegna(); });
     chips($('giorno'), GIORNI, giorno, function (v) { giorno = v; disegna(); });
   }
-  function riempi(sel, nomi, conTutti) {
-    sel.innerHTML = '';
-    nomi.concat(conTutti ? ['tutti'] : []).forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n === 'tutti' ? 'Tutti' : n; sel.appendChild(o); });
+  var urlFoto = null;
+  function mostraGiro(s, g, titolo) {
+    $('vetrina').hidden = false; $('titolo-giro').textContent = titolo; $('foto').classList.remove('zoom');
+    $('img-giro').removeAttribute('src'); $('foto').classList.add('carica');
+    var q = '/api/giro?' + (s ? 's=' + s + '&' : '') + (g ? 'g=' + encodeURIComponent(g) : '');
+    chiama(q).then(function (r) {
+      if (!r.ok) return errore(r).then(function (m) { throw new Error(m); });
+      return r.blob();
+    }).then(function (b) {
+      if (urlFoto) URL.revokeObjectURL(urlFoto);
+      urlFoto = URL.createObjectURL(b); $('img-giro').src = urlFoto; $('foto').classList.remove('carica');
+      $('vetrina').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(function (e) {
+      $('foto').classList.remove('carica'); $('vetrina').hidden = true;
+      var m = String(e.message || e);
+      avviso(m === 'domenica' ? 'La domenica non ci sono gruppi' : 'Il foglio non è pronto', m === 'domenica' ? '' : m);
+    });
   }
-  var timer = null;
-  function avviso(titolo, sotto) {
-    var e = $('esito'); e.innerHTML = ''; var t = document.createElement('span'); t.textContent = titolo; e.appendChild(t);
-    if (sotto) { var s = document.createElement('small'); s.textContent = sotto; e.appendChild(s); }
-    e.classList.add('su'); clearTimeout(timer); timer = setTimeout(function () { e.classList.remove('su'); }, 4200);
-  }
-  // il comando parte come dato verso il bot; Telegram chiude la pagina e la risposta compare in chat
-  // (19/10/2026, Yuri: "a che serve il tasto laterale se non funziona?") due modi di aprire la pagina, due modi di parlare al bot:
-  //  - dal bottone «Apri Jarvis» sotto la chat (tastiera): sendData manda il comando e Telegram chiude la pagina;
-  //  - dal bottone del menu a sinistra del campo (c'e' initData): sendData non esiste, si apre il link ?start=<comando in base64url>,
-  //    il bot lo riconosce come comando. Il link regge solo 64 caratteri: i comandi lunghi (un memo) vanno dal bottone sotto la chat.
-  var NOME_BOT = 'jarvis_palestra_bot';
-  function b64url(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-  function invia(cmd) {
-    if (dentro && tg.initData && tg.openTelegramLink) {
-      var p = b64url(cmd);
-      if (p.length > 64) { avviso('Troppo lungo da qui', 'Per i memo apri Jarvis dal bottone sotto la chat, oppure scrivi: ' + cmd.slice(0, 60)); return; }
-      try { tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e3) {}
-      try { tg.openTelegramLink('https://t.me/' + NOME_BOT + '?start=' + p); setTimeout(function () { try { tg.close(); } catch (e4) {} }, 400); }
-      catch (e5) { avviso('Non sono riuscito ad aprire la chat', 'Scrivi il comando in chat: ' + cmd); }
-      return;
-    }
-    if (dentro && tg.sendData) {
-      try { tg.sendData(cmd); try { tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e2) {} }
-      catch (e) { avviso('Non sono riuscito a inviare', 'Riprova, o scrivi il comando in chat: ' + cmd); return; }
-      // sendData chiude la pagina: se dopo un secondo e mezzo e' ancora qui, la pagina non e' stata aperta dal bottone «Apri Jarvis»
-      // della tastiera (il solo che puo' mandare dati al bot): lo si dice invece di restare muti
-      setTimeout(function () { avviso('Non e partito', 'Aprimi dal bottone «Apri Jarvis» in chat privata, oppure scrivi: ' + cmd); }, 1500);
-    }
-    else avviso('Anteprima: partirebbe questo comando', cmd);
-  }
-  document.querySelectorAll('[data-cmd]').forEach(function (b) { b.onclick = function () { invia(b.getAttribute('data-cmd')); }; });
+  function titoloGiro(s, g) { return 'Giro · settimana ' + (s || sett || '') + (g && NOMI_GIORNO[g] ? ' · ' + NOMI_GIORNO[g] : ''); }
+  $('b-oggi').onclick = function () { tocco(); mostraGiro('', 'oggi', 'Il giro di oggi'); };
+  $('b-domani').onclick = function () { tocco(); mostraGiro('', 'domani', 'Il giro di domani'); };
   $('vai-giro').onclick = function () {
-    var c = '/giro';
-    if (giorno) c += ' ' + giorno + (sett ? ' ' + sett : '');
-    else if (sett) c += ' settimana ' + sett;
-    invia(c);
+    tocco();
+    var g = giorno; var s = sett;
+    mostraGiro(s, g ? g.toUpperCase() : '', 'Il giro' + (s ? ' · settimana ' + s : '') + (g ? ' · ' + (GIORNI.filter(function (x) { return x[0] === g; })[0] || [0, g])[1] : ''));
   };
-  $('vedi-memo').onclick = function () { if (!$('di-chi').value) { avviso('Scegli di chi', 'Tocca la tendina e scegli un collega'); return; } invia('/memo ' + $('di-chi').value); };
+  $('foto').onclick = function () { $('foto').classList.toggle('zoom'); };
+
+  // ---- memo ----
+  function disegnaMemo(lista, titolo, conFatto) {
+    $('elenco').hidden = false; $('titolo-elenco').textContent = titolo;
+    var l = $('lista'); l.innerHTML = '';
+    if (!lista.length) { var v = document.createElement('p'); v.className = 'aiuto'; v.textContent = 'Nessun memo qui.'; l.appendChild(v); return; }
+    lista.forEach(function (m) {
+      var c = document.createElement('div'); c.className = 'memo' + (m.fatto ? ' fatto' : '');
+      var t = document.createElement('div'); t.className = 'memo-testo'; t.textContent = m.testo;
+      var meta = document.createElement('div'); meta.className = 'memo-meta';
+      meta.textContent = '#' + m.n + ' · per ' + (m.per === 'tutti' ? 'tutti' : m.per) + ' · da ' + m.da + ' · ' + (m.quando || '').slice(0, 5);
+      c.appendChild(t); c.appendChild(meta);
+      if (conFatto && !m.fatto) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'fatto-b'; b.textContent = 'Fatto';
+        b.onclick = function () {
+          tocco(); b.disabled = true;
+          chiama('/api/fatto', { corpo: { n: m.n } }).then(function (r) { return r.json(); }).then(function (j) {
+            if (j.ok) { c.classList.add('esce'); setTimeout(function () { c.remove(); if (!l.children.length) disegnaMemo([], titolo, conFatto); }, 280); avviso('Memo tolto', '#' + m.n); }
+            else { b.disabled = false; avviso('Non posso toglierlo', j.messaggio || j.errore || ''); }
+          }).catch(function () { b.disabled = false; avviso('Niente rete', 'Riprova fra un attimo'); });
+        };
+        c.appendChild(b);
+      }
+      l.appendChild(c);
+    });
+  }
+  function caricaMemo(vista, nome, titolo) {
+    vistaCorrente = { vista: vista, nome: nome, titolo: titolo };
+    $('elenco').hidden = false; $('titolo-elenco').textContent = titolo; $('lista').innerHTML = '<p class="aiuto">Carico…</p>';
+    chiama('/api/memo?vista=' + vista + (nome ? '&nome=' + encodeURIComponent(nome) : '')).then(function (r) {
+      if (!r.ok) return errore(r).then(function (m) { throw new Error(m); });
+      return r.json();
+    }).then(function (j) { disegnaMemo(j.memo, titolo, vista !== 'fatti'); })
+      .catch(function (e) { $('lista').innerHTML = ''; $('elenco').hidden = true; avviso('Non riesco a leggere i memo', String(e.message || e)); });
+  }
+  var TITOLI = { miei: 'I miei memo', tutti: 'Tutti i memo', fatti: 'Già fatti' };
+  document.querySelectorAll('[data-vista]').forEach(function (b) { b.onclick = function () { tocco(); caricaMemo(b.getAttribute('data-vista'), '', TITOLI[b.getAttribute('data-vista')]); $('elenco').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+  $('vedi-memo').onclick = function () {
+    var n = $('di-chi').value;
+    if (!n) { avviso('Scegli di chi', 'Tocca la tendina e scegli un collega'); return; }
+    tocco(); caricaMemo('di', n, 'Memo di ' + (n === 'tutti' ? 'tutti' : n)); $('elenco').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   $('scrivi-memo').onclick = function () {
-    var t = $('testo-memo').value.replace(/\s+/g, ' ').trim();
+    var per = $('per-chi').value, t = $('testo-memo').value.replace(/\s+/g, ' ').trim();
+    if (!per) { avviso('Scegli per chi', 'Tocca la tendina «Per chi»'); return; }
     if (!t) { avviso('Scrivi prima il memo', 'Per esempio: portare il gesso sabato'); return; }
-    if (!$('per-chi').value) { avviso('Scegli per chi', 'Tocca la tendina «Scrivi un memo per» e scegli chi lo deve ricevere'); return; }
-    invia('/nuovomemo ' + $('per-chi').value + ' ' + t);
+    tocco(); $('scrivi-memo').disabled = true;
+    chiama('/api/memo', { corpo: { per: per, testo: t } }).then(function (r) {
+      $('scrivi-memo').disabled = false;
+      if (!r.ok) return errore(r).then(function (m) { avviso('Non è partito', m); });
+      return r.json().then(function (j) {
+        $('testo-memo').value = ''; avviso('Memo scritto', '#' + j.n + ' per ' + (per === 'tutti' ? 'tutti' : per));
+        if (vistaCorrente) caricaMemo(vistaCorrente.vista, vistaCorrente.nome, vistaCorrente.titolo);
+      });
+    }).catch(function () { $('scrivi-memo').disabled = false; avviso('Niente rete', 'Riprova fra un attimo'); });
   };
-  riempi($('di-chi'), NOMI, true); riempi($('per-chi'), NOMI, true);
-  if (!NOMI.length) { $('di-chi').innerHTML = '<option value="tutti">Tutti</option>'; $('per-chi').innerHTML = '<option value="tutti">Tutti</option>'; }
-  // la prima voce e' «Scegli...»: niente memo mandato alla persona sbagliata perche' era la prima della lista
-  ['di-chi', 'per-chi'].forEach(function (id) { var s = $(id); var o = document.createElement('option'); o.value = ''; o.textContent = 'Scegli...'; s.insertBefore(o, s.firstChild); s.value = ''; });
-  disegna();
-  try { $("diag").textContent = "pagina 7 - " + (tg ? ("Telegram " + tg.platform + " v" + tg.version + (dentro ? " - dentro" : " - fuori")) : "senza Telegram"); } catch (e) {}
-  window.onerror = function (m, s, l) { try { $("diag").textContent = "errore: " + m + " (riga " + l + ")"; } catch (e) {} };
+  function riempi(sel, voci, conTutti) {
+    sel.innerHTML = ''; var o = document.createElement('option'); o.value = ''; o.textContent = 'Scegli...'; sel.appendChild(o);
+    voci.concat(conTutti ? ['tutti'] : []).forEach(function (n) { var x = document.createElement('option'); x.value = n; x.textContent = n === 'tutti' ? 'Tutti' : n; sel.appendChild(x); });
+  }
+
+  // ---- schede ----
   function scheda(nome) {
     ['giro', 'memo', 'altro'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
     document.querySelectorAll('#barra button').forEach(function (b) { b.classList.toggle('su', b.getAttribute('data-tab') === nome); });
     try { sessionStorage.setItem('jarvis-mini-scheda', nome); } catch (e) {}
-    window.scrollTo(0, 0);
-    try { if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); } catch (e) {}
+    window.scrollTo(0, 0); try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {}
   }
   document.querySelectorAll('#barra button').forEach(function (b) { b.onclick = function () { scheda(b.getAttribute('data-tab')); }; });
-  try { var ult = sessionStorage.getItem('jarvis-mini-scheda'); if (ult && $('t-' + ult)) scheda(ult); } catch (e) {}
+
+  // ---- avvio ----
+  var diag = 'pagina 8 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
+  function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
+  if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
+  chiama('/api/stato').then(function (r) {
+    if (r.status === 403) { bloccato(diag + ' · non sei nella lista dei colleghi, o la firma è scaduta'); return null; }
+    if (!r.ok) { bloccato(diag + ' · il servizio non risponde (' + r.status + ')'); return null; }
+    return r.json();
+  }).then(function (s) {
+    if (!s) return;
+    io = s.chi; nomi = s.nomi; $('blocco').hidden = true; $('app').hidden = false; $('barra').hidden = false;
+    $('saluto').textContent = 'ciao ' + s.chi + ' · settimana ' + (s.settimana || '?');
+    $('riga-settimana').textContent = s.settimana ? 'Siamo nella settimana ' + s.settimana + ' del giro.' : 'La settimana del giro non è ancora impostata.';
+    riempi($('di-chi'), nomi, true); riempi($('per-chi'), nomi, true);
+    disegna(); $('diag').textContent = diag;
+    try { var ult = sessionStorage.getItem('jarvis-mini-scheda'); if (ult && $('t-' + ult)) scheda(ult); } catch (e) {}
+  }).catch(function (e) { bloccato(diag + ' · niente rete: ' + String(e.message || e)); });
 })();
 </script>
 </body>
