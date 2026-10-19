@@ -170,7 +170,10 @@
 <script>
 (function () {
   var tg = window.Telegram && window.Telegram.WebApp;
-  var dentro = !!(tg && tg.initData);
+  // (19/10/2026, "i tasti dicono solo l'anteprima") dalla tastiera di Telegram initData/initDataUnsafe sono VUOTI (documentazione
+  // Telegram: "empty if launched from a keyboard button"): non si puo' riconoscere Telegram da li'. Si guarda la piattaforma,
+  // che lo script di Telegram legge dal link di apertura ("unknown" fuori da Telegram).
+  var dentro = !!(tg && ((tg.platform && tg.platform !== 'unknown') || tg.initData));
   try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0b0505'); tg.setBackgroundColor && tg.setBackgroundColor('#0b0505'); } } catch (e) {}
   var NOMI = (window.NOMI_COLLEGHI && window.NOMI_COLLEGHI.length) ? window.NOMI_COLLEGHI : [];
   var GIORNI = [['oggi', 'Oggi'], ['domani', 'Domani'], ['lunedì', 'Lun'], ['martedì', 'Mar'], ['mercoledì', 'Mer'], ['giovedì', 'Gio'], ['venerdì', 'Ven'], ['sabato', 'Sab']];
@@ -202,7 +205,13 @@
   }
   // il comando parte come dato verso il bot; Telegram chiude la pagina e la risposta compare in chat
   function invia(cmd) {
-    if (dentro && tg.sendData) { try { tg.sendData(cmd); } catch (e) { avviso('Non sono riuscito a inviare', 'Riprova, o scrivi il comando in chat: ' + cmd); } }
+    if (dentro && tg.sendData) {
+      try { tg.sendData(cmd); try { tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e2) {} }
+      catch (e) { avviso('Non sono riuscito a inviare', 'Riprova, o scrivi il comando in chat: ' + cmd); return; }
+      // sendData chiude la pagina: se dopo un secondo e mezzo e' ancora qui, la pagina non e' stata aperta dal bottone «Apri Jarvis»
+      // della tastiera (il solo che puo' mandare dati al bot): lo si dice invece di restare muti
+      setTimeout(function () { avviso('Non e partito', 'Aprimi dal bottone «Apri Jarvis» in chat privata, oppure scrivi: ' + cmd); }, 1500);
+    }
     else avviso('Anteprima: partirebbe questo comando', cmd);
   }
   document.querySelectorAll('[data-cmd]').forEach(function (b) { b.onclick = function () { invia(b.getAttribute('data-cmd')); }; });
