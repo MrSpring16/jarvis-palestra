@@ -80,6 +80,12 @@
   body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   /* ---- parti nuove del 19/10/2026 sera: avviso "aprimi dal menu", foto del giro, schede dei memo ---- */
   [hidden] { display: none !important; }
+  #viewer { position: fixed; inset: 0; z-index: 30; background: #000; touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  #viewer img { position: absolute; left: 50%; top: 50%; max-width: 100%; max-height: 100%; transform: translate(-50%, -50%); transform-origin: center center; will-change: transform; -webkit-user-drag: none; pointer-events: none; }
+  #viewer .chiudi { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 12px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--bordo-forte); background: rgba(20,8,8,.78); color: var(--accento-testo); font-size: 18px; cursor: pointer; }
+  #viewer .v-titolo { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 14px; right: 70px; z-index: 2; color: var(--accento-testo); font: 700 14px/1.2 var(--font-hud); letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 0 8px #000; pointer-events: none; }
+  #viewer .v-aiuto { position: absolute; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); text-align: center; color: var(--tenue); font: 500 11px var(--font-testo); pointer-events: none; transition: opacity .6s; }
+  #viewer.nascondi-aiuto .v-aiuto { opacity: 0; }
   .saluto { margin: -4px 2px 14px; color: var(--accento-testo); font: 500 14px/1.45 var(--font-testo); text-shadow: 0 0 10px rgba(242,179,61,.25); }
   .blocco { padding: 16px 15px; margin: 0 0 12px; border: 1px solid var(--accento); background: var(--pannello-forte); box-shadow: 0 0 16px rgba(242,179,61,.25); }
   .blocco h2 { margin: 0 0 6px; } .blocco p { margin: 0 0 8px; } .tenue { color: var(--tenue); font-size: 12px; word-break: break-word; }
@@ -134,7 +140,7 @@
   <section id="vetrina" hidden>
     <h2 id="titolo-giro">Il giro</h2>
     <div class="foto" id="foto"><img id="img-giro" alt="Foglio del giro attrezzi"></div>
-    <p class="aiuto" style="margin:8px 0 0;font-size:12px">Tocca la foto per ingrandirla, tocca ancora per rimpicciolirla.</p>
+    <p class="aiuto" style="margin:8px 0 0;font-size:12px">Tocca la foto per aprirla a schermo intero.</p>
   </section>
 </div>
 
@@ -179,6 +185,12 @@
   <button type="button" data-tab="memo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Memo</button>
   <button type="button" data-tab="altro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>Aiuto</button>
 </nav>
+<div id="viewer" hidden>
+  <img id="viewer-img" alt="Foglio del giro attrezzi">
+  <button type="button" class="chiudi" id="viewer-chiudi" aria-label="Chiudi">&#10005;</button>
+  <div class="v-titolo" id="viewer-titolo"></div>
+  <div class="v-aiuto">Pizzica per ingrandire, doppio tocco per lo zoom, trascina in basso per chiudere</div>
+</div>
 <div id="esito" role="status" aria-live="polite"></div>
 
 <script>
@@ -250,7 +262,45 @@
     var g = giorno; var s = sett;
     mostraGiro(s, g ? g.toUpperCase() : '', 'Il giro' + (s ? ' · settimana ' + s : '') + (g ? ' · ' + (GIORNI.filter(function (x) { return x[0] === g; })[0] || [0, g])[1] : ''));
   };
-  $('foto').onclick = function () { $('foto').classList.toggle('zoom'); };
+  // ---- il visore a schermo intero: pizzico, doppio tocco, trascinamento; in basso per chiudere; il tasto indietro di Telegram chiude ----
+  var vw = $('viewer'), vi = $('viewer-img'), V = { s: 1, x: 0, y: 0 }, punti = {}, pinch = null, ultimoTap = 0, mosso = false, cadi = 0;
+  function applica() { vi.style.transform = 'translate(-50%, -50%) translate(' + V.x + 'px, ' + V.y + 'px) scale(' + V.s + ')'; }
+  function limiti() { var mx = Math.max(0, (vi.offsetWidth * V.s - window.innerWidth) / 2), my = Math.max(0, (vi.offsetHeight * V.s - window.innerHeight) / 2); V.x = Math.max(-mx, Math.min(mx, V.x)); V.y = Math.max(-my, Math.min(my, V.y)); }
+  function apriVisore() {
+    if (!$('img-giro').getAttribute('src')) return;
+    $('viewer-img').src = $('img-giro').src; $('viewer-titolo').textContent = $('titolo-giro').textContent;
+    V = { s: 1, x: 0, y: 0 }; applica(); vw.style.background = '#000'; vw.classList.remove('nascondi-aiuto'); vw.hidden = false; document.body.style.overflow = 'hidden';
+    setTimeout(function () { vw.classList.add('nascondi-aiuto'); }, 2600);
+    try { tg.BackButton.show(); tg.BackButton.onClick(chiudiVisore); } catch (e) {}
+  }
+  function chiudiVisore() { vw.hidden = true; document.body.style.overflow = ''; punti = {}; pinch = null; try { tg.BackButton.hide(); tg.BackButton.offClick(chiudiVisore); } catch (e) {} }
+  function distanza() { var k = Object.keys(punti); if (k.length < 2) return 0; var a = punti[k[0]], b = punti[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); }
+  vw.addEventListener('pointerdown', function (e) {
+    punti[e.pointerId] = { x: e.clientX, y: e.clientY }; try { vw.setPointerCapture(e.pointerId); } catch (x) {}
+    mosso = false; cadi = 0; if (Object.keys(punti).length === 2) pinch = { d: distanza(), s: V.s };
+  });
+  vw.addEventListener('pointermove', function (e) {
+    var p = punti[e.pointerId]; if (!p) return;
+    var dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (Math.abs(dx) + Math.abs(dy) > 1) mosso = true;
+    if (Object.keys(punti).length >= 2 && pinch && pinch.d > 0) { V.s = Math.max(1, Math.min(6, pinch.s * distanza() / pinch.d)); limiti(); applica(); return; }
+    if (V.s > 1.02) { V.x += dx; V.y += dy; limiti(); applica(); return; }
+    cadi += dy; V.y = Math.max(0, cadi); V.x = 0; applica(); vw.style.background = 'rgba(0,0,0,' + Math.max(.25, 1 - V.y / 500) + ')';
+  });
+  function finePunto(e) {
+    var avevaPunto = !!punti[e.pointerId]; delete punti[e.pointerId]; if (Object.keys(punti).length < 2) pinch = null;
+    if (!avevaPunto || Object.keys(punti).length) return;
+    if (V.s <= 1.02 && cadi > 110) { chiudiVisore(); return; }
+    if (V.s <= 1.02) { V.y = 0; applica(); vw.style.background = '#000'; }
+    var ora = Date.now();
+    if (!mosso && e.type === 'pointerup') {
+      if (ora - ultimoTap < 320) { V.s = V.s > 1.5 ? 1 : 2.6; V.x = 0; V.y = 0; limiti(); applica(); ultimoTap = 0; } else ultimoTap = ora;
+    }
+  }
+  vw.addEventListener('pointerup', finePunto); vw.addEventListener('pointercancel', finePunto);
+  $('viewer-chiudi').addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+  $('viewer-chiudi').onclick = chiudiVisore;
+  $('foto').onclick = apriVisore;
 
   // ---- memo ----
   function disegnaMemo(lista, titolo, conFatto) {
@@ -333,7 +383,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 11 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 12 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
