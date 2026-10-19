@@ -150,7 +150,7 @@
     <p class="aiuto">Le cose da ricordare, per te o per gli altri.</p>
     <div class="riga">
       <button class="chip" data-vista="miei">I miei memo</button>
-      <button class="chip" data-vista="tutti">Tutti i memo</button>
+      <button class="chip" data-vista="comuni">Memo di tutti</button>
       <button class="chip" data-vista="fatti">Già fatti</button>
     </div>
     <label>Memo di un collega</label>
@@ -336,8 +336,8 @@
     }).then(function (j) { disegnaMemo(j.memo, titolo, vista !== 'fatti'); })
       .catch(function (e) { $('lista').innerHTML = ''; $('elenco').hidden = true; avviso('Non riesco a leggere i memo', String(e.message || e)); });
   }
-  var TITOLI = { miei: 'I miei memo', tutti: 'Tutti i memo', fatti: 'Già fatti' };
-  document.querySelectorAll('[data-vista]').forEach(function (b) { b.onclick = function () { tocco(); caricaMemo(b.getAttribute('data-vista'), '', TITOLI[b.getAttribute('data-vista')]); $('elenco').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+  var TITOLI = { miei: 'I miei memo', comuni: 'Memo di tutti', fatti: 'Già fatti' };
+  document.querySelectorAll('[data-vista]').forEach(function (b) { b.onclick = function () { tocco(); var v = b.getAttribute('data-vista'); if (v === 'comuni') caricaMemo('di', 'tutti', TITOLI.comuni); else caricaMemo(v, '', TITOLI[v]); $('elenco').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
   $('vedi-memo').onclick = function () {
     var n = $('di-chi').value;
     if (!n) { avviso('Scegli di chi', 'Tocca la tendina e scegli un collega'); return; }
@@ -383,7 +383,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 12 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 13 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
@@ -396,7 +396,7 @@
     io = s.chi; nomi = s.nomi; $('blocco').hidden = true; $('app').hidden = false; $('barra').hidden = false;
     $('saluto').textContent = saluto(s.chi, s.settimana); $('saluto').hidden = false;
     $('riga-settimana').textContent = s.settimana ? 'Siamo nella settimana ' + s.settimana + ' del giro.' : 'La settimana del giro non è ancora impostata.';
-    riempi($('di-chi'), nomi, true); riempi($('per-chi'), nomi, true);
+    riempi($('di-chi'), nomi, false); riempi($('per-chi'), nomi, true);
     disegna(); $('diag').textContent = diag;
     try { var ult = sessionStorage.getItem('jarvis-mini-scheda'); if (ult && $('t-' + ult)) scheda(ult); } catch (e) {}
   }).catch(function (e) { bloccato(diag + ' · niente rete: ' + String(e.message || e)); });
