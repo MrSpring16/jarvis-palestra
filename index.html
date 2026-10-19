@@ -200,7 +200,7 @@
   var API = 'https://jarvis-palestra.yuri-palestra.workers.dev';
   var tg = window.Telegram && window.Telegram.WebApp;
   var initData = (tg && tg.initData) || '';
-  try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0b0505'); tg.setBackgroundColor && tg.setBackgroundColor('#0b0505'); } } catch (e) {}
+  try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0b0505'); tg.setBackgroundColor && tg.setBackgroundColor('#0b0505'); tg.setBottomBarColor && tg.setBottomBarColor('#0b0505'); } } catch (e) {}
   function $(id) { return document.getElementById(id); }
   var GIORNI = [['oggi', 'Oggi'], ['domani', 'Domani'], ['lun', 'Lun'], ['mar', 'Mar'], ['mer', 'Mer'], ['gio', 'Gio'], ['ven', 'Ven'], ['sab', 'Sab']];
   var NOMI_GIORNO = { LUN: 'lunedì', MAR: 'martedì', MER: 'mercoledì', GIO: 'giovedì', VEN: 'venerdì', SAB: 'sabato' };
@@ -393,7 +393,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 16 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 17 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
