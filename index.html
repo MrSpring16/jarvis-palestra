@@ -106,7 +106,7 @@
     <polygon class="l nucleo" stroke-width="2" stroke-linejoin="round" points="110,62 156,140 64,140" opacity=".6"/>
     <polygon class="cuore" points="95,98 125,98 110,124"/>
   </svg>
-  <div><h1>J.A.R.V.I.S.</h1><p>assistente della palestra</p></div>
+  <div><h1>J.A.R.V.I.S.</h1><p>protocollo assistente Flic</p></div>
 </header>
 <p class="saluto" id="saluto" hidden></p>
 
@@ -333,7 +333,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 9 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 10 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
