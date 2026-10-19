@@ -1,2 +1,2 @@
-// Nomi dei colleghi: vuoto finche non si decide di pubblicarli (la pagina e pubblica). Nessun id, nessun token.
-window.NOMI_COLLEGHI = [];
+// Scritto da bot.ps1 -ScriviMiniApp: i nomi dei colleghi (mai gli id). Non modificare a mano.
+window.NOMI_COLLEGHI = ["Barbara", "Elisa", "Sara", "Yuri"];
