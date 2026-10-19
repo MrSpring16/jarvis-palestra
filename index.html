@@ -204,7 +204,21 @@
     e.classList.add('su'); clearTimeout(timer); timer = setTimeout(function () { e.classList.remove('su'); }, 4200);
   }
   // il comando parte come dato verso il bot; Telegram chiude la pagina e la risposta compare in chat
+  // (19/10/2026, Yuri: "a che serve il tasto laterale se non funziona?") due modi di aprire la pagina, due modi di parlare al bot:
+  //  - dal bottone «Apri Jarvis» sotto la chat (tastiera): sendData manda il comando e Telegram chiude la pagina;
+  //  - dal bottone del menu a sinistra del campo (c'e' initData): sendData non esiste, si apre il link ?start=<comando in base64url>,
+  //    il bot lo riconosce come comando. Il link regge solo 64 caratteri: i comandi lunghi (un memo) vanno dal bottone sotto la chat.
+  var NOME_BOT = 'jarvis_palestra_bot';
+  function b64url(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
   function invia(cmd) {
+    if (dentro && tg.initData && tg.openTelegramLink) {
+      var p = b64url(cmd);
+      if (p.length > 64) { avviso('Troppo lungo da qui', 'Per i memo apri Jarvis dal bottone sotto la chat, oppure scrivi: ' + cmd.slice(0, 60)); return; }
+      try { tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e3) {}
+      try { tg.openTelegramLink('https://t.me/' + NOME_BOT + '?start=' + p); setTimeout(function () { try { tg.close(); } catch (e4) {} }, 400); }
+      catch (e5) { avviso('Non sono riuscito ad aprire la chat', 'Scrivi il comando in chat: ' + cmd); }
+      return;
+    }
     if (dentro && tg.sendData) {
       try { tg.sendData(cmd); try { tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e2) {} }
       catch (e) { avviso('Non sono riuscito a inviare', 'Riprova, o scrivi il comando in chat: ' + cmd); return; }
@@ -235,7 +249,7 @@
   riempi($('di-chi'), NOMI, true); riempi($('per-chi'), NOMI, true);
   if (!NOMI.length) { $('di-chi').innerHTML = '<option value="tutti">Tutti</option>'; $('per-chi').innerHTML = '<option value="tutti">Tutti</option>'; }
   disegna();
-  try { $("diag").textContent = "pagina 4 - " + (tg ? ("Telegram " + tg.platform + " v" + tg.version + (dentro ? " - dentro" : " - fuori")) : "senza Telegram"); } catch (e) {}
+  try { $("diag").textContent = "pagina 5 - " + (tg ? ("Telegram " + tg.platform + " v" + tg.version + (dentro ? " - dentro" : " - fuori")) : "senza Telegram"); } catch (e) {}
   window.onerror = function (m, s, l) { try { $("diag").textContent = "errore: " + m + " (riga " + l + ")"; } catch (e) {} };
   function scheda(nome) {
     ['giro', 'memo', 'altro'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
