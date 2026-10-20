@@ -100,6 +100,49 @@
   .memo-meta { margin-top: 4px; color: var(--tenue); font: 600 11px/1.3 var(--font-hud); letter-spacing: .12em; text-transform: uppercase; }
   .fatto-b { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 8px 12px; background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border: 1px solid var(--accento); border-radius: 3px; color: var(--accento-testo); font: 700 13px var(--font-hud); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
   .fatto-b:disabled { opacity: .5; }
+  /* ---- 21/10/2026: cinque voci in basso (Oggi, Calendario, Presenze, Chat, Memo), calendario, presenze, chat, promemoria ---- */
+  nav#barra button { font-size: 11px; letter-spacing: .08em; position: relative; }
+  nav#barra button svg { width: 24px; height: 24px; }
+  .badge { position: absolute; top: 4px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #e5484d; color: #fff; font: 700 11px/17px var(--font-hud); letter-spacing: 0; text-align: center; }
+  input[type=date], input[type=time] { color-scheme: dark; }
+  .promemoria { display: flex; gap: 10px; align-items: center; padding: 10px 12px; margin: 8px 0; background: rgba(242,179,61,.1); border: 1px solid var(--accento); border-left-width: 4px; }
+  .promemoria.letto { opacity: .55; border-color: var(--bordo); }
+  .promemoria .testo { flex: 1; font-size: 15px; word-break: break-word; }
+  .promemoria .quando { display: block; margin-top: 2px; color: var(--tenue); font: 600 11px var(--font-hud); letter-spacing: .1em; text-transform: uppercase; }
+  .mese-testa { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .mese-testa .titolo { font: 700 18px var(--font-hud); letter-spacing: .18em; text-transform: uppercase; color: var(--accento-testo); }
+  .mese-testa button { width: 46px; height: 46px; background: rgba(242,179,61,.08); border: 1px solid var(--bordo); border-radius: 3px; color: var(--accento-testo); font-size: 22px; cursor: pointer; }
+  .griglia { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .griglia .nome-g { text-align: center; color: var(--tenue); font: 700 11px var(--font-hud); letter-spacing: .12em; padding: 2px 0 4px; }
+  .giorno-c { position: relative; min-height: 50px; padding: 5px 2px 2px; background: rgba(0,0,0,.28); border: 1px solid var(--bordo); border-radius: 3px; color: var(--testo); font: 600 15px var(--font-hud); cursor: pointer; text-align: center; }
+  .giorno-c.vuoto { visibility: hidden; } .giorno-c.oggi { border-color: var(--accento); box-shadow: 0 0 8px rgba(242,179,61,.4); }
+  .giorno-c.sel { background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border-color: var(--accento); }
+  .punti { display: flex; justify-content: center; gap: 3px; margin-top: 4px; flex-wrap: wrap; }
+  .punto { width: 8px; height: 8px; border-radius: 50%; background: var(--tenue); } .punto.gara { background: var(--accento); box-shadow: 0 0 6px var(--accento); } .punto.allenamento { background: var(--ok); }
+  .legenda { display: flex; gap: 14px; margin-top: 8px; color: var(--tenue); font-size: 12px; } .legenda i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .voce { display: block; width: 100%; text-align: left; padding: 11px 12px; margin: 8px 0; background: rgba(0,0,0,.28); border: 1px solid var(--bordo); border-left: 3px solid var(--tenue); border-radius: 3px; cursor: pointer; }
+  .voce.gara { border-left-color: var(--accento); } .voce.allenamento { border-left-color: var(--ok); }
+  .voce .t { font-size: 16px; font-weight: 600; } .voce .m { margin-top: 3px; color: var(--tenue); font: 600 12px var(--font-hud); letter-spacing: .08em; text-transform: uppercase; }
+  .foglio { position: fixed; inset: 0; z-index: 20; overflow-y: auto; background: var(--sfondo); padding: 12px 14px calc(40px + env(safe-area-inset-bottom)); }
+  .foglio .chiudi-f { position: sticky; top: 0; float: right; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--bordo-forte); background: rgba(20,8,8,.9); color: var(--accento-testo); font-size: 18px; cursor: pointer; }
+  .foglio h3 { margin: 4px 0 6px; font: 700 22px/1.15 var(--font-hud); letter-spacing: .06em; color: var(--accento-testo); }
+  .riga-info { margin: 5px 0; font-size: 15px; } .riga-info b { color: var(--accento-testo); font-weight: 600; }
+  .etichetta { display: inline-block; margin: 2px 6px 2px 0; padding: 3px 9px; border: 1px solid var(--bordo); border-radius: 3px; font: 600 13px var(--font-hud); letter-spacing: .08em; background: rgba(242,179,61,.07); }
+  .doppia { display: flex; gap: 8px; margin: 10px 0; } .doppia .gran { flex: 1; }
+  .gran.no { background: linear-gradient(180deg, rgba(229,72,77,.3), rgba(229,72,77,.08)); border-color: #e5484d; color: #ffb3b5; box-shadow: none; }
+  .gran.on { box-shadow: 0 0 22px rgba(242,179,61,.6); outline: 2px solid var(--accento-testo); }
+  .gran.no.on { outline-color: #ffb3b5; box-shadow: 0 0 22px rgba(229,72,77,.5); }
+  .gran.sec { background: rgba(242,179,61,.06); font-size: 14px; }
+  .gin { display: flex; align-items: center; gap: 8px; padding: 10px 12px; margin: 6px 0; background: rgba(0,0,0,.28); border: 1px solid var(--bordo); }
+  .gin .nome { flex: 1; font-size: 16px; } .gin .tasto { width: 56px; height: 46px; background: rgba(242,179,61,.05); border: 1px solid var(--bordo); border-radius: 3px; font: 700 16px var(--font-hud); cursor: pointer; }
+  .gin .tasto.p.on { background: rgba(95,240,168,.25); border-color: var(--ok); color: var(--ok); } .gin .tasto.a.on { background: rgba(229,72,77,.25); border-color: #e5484d; color: #ffb3b5; }
+  .conto { margin: 8px 0 0; color: var(--tenue); font: 600 13px var(--font-hud); letter-spacing: .1em; text-transform: uppercase; }
+  #chat-lista { max-height: calc(100vh - 330px); min-height: 200px; overflow-y: auto; padding: 4px 2px; }
+  .bolla { max-width: 82%; margin: 6px 0; padding: 8px 11px; background: rgba(0,0,0,.34); border: 1px solid var(--bordo); border-radius: 3px; word-break: break-word; }
+  .bolla.mia { margin-left: auto; background: rgba(242,179,61,.14); border-color: var(--accento); }
+  .bolla .chi { color: var(--accento); font: 700 11px var(--font-hud); letter-spacing: .14em; text-transform: uppercase; } .bolla .ora { color: var(--tenue); font-size: 11px; margin-left: 6px; }
+  .invio { display: flex; gap: 8px; margin-top: 8px; } .invio input { flex: 1; } .invio .gran { width: auto; padding: 0 18px; }
+  details.sezione > summary { cursor: pointer; padding: 6px 0; font: 700 12px var(--font-hud); letter-spacing: .3em; text-transform: uppercase; color: var(--accento); }
 
 </style>
 </head>
@@ -124,19 +167,25 @@
 </div>
 
 <main id="app" hidden>
-<div class="scheda su" id="t-giro">
+<!-- OGGI: i promemoria per te, il giro di oggi -->
+<div class="scheda su" id="t-oggi">
+  <section id="sez-prom" hidden>
+    <h2>Per te</h2>
+    <div id="lista-prom"></div>
+    <button class="gran sec" id="prom-letti" type="button" hidden>Ho letto tutto</button>
+  </section>
   <section>
     <h2>Oggi in palestra</h2>
     <div class="oggi"><button class="gran" id="b-oggi">Il giro di oggi</button><button class="chip" id="b-domani">Domani</button></div>
     <p class="aiuto" id="riga-settimana"></p>
-  </section>
-  <section>
-    <h2>Un altro giorno</h2>
-    <label>Settimana</label>
-    <div class="riga" id="sett"></div>
-    <label>Giorno</label>
-    <div class="riga" id="giorno"></div>
-    <button class="gran" id="vai-giro">Mostra il giro</button>
+    <details class="sezione">
+      <summary>Un altro giorno</summary>
+      <label>Settimana</label>
+      <div class="riga" id="sett"></div>
+      <label>Giorno</label>
+      <div class="riga" id="giorno"></div>
+      <button class="gran" id="vai-giro">Mostra il giro</button>
+    </details>
   </section>
   <section id="vetrina" hidden>
     <h2 id="titolo-giro">Il giro</h2>
@@ -145,6 +194,47 @@
   </section>
 </div>
 
+<!-- CALENDARIO -->
+<div class="scheda" id="t-cal">
+  <section>
+    <div class="mese-testa"><button type="button" id="mese-prec" aria-label="Mese prima">&#8249;</button><span class="titolo" id="mese-titolo"></span><button type="button" id="mese-succ" aria-label="Mese dopo">&#8250;</button></div>
+    <div class="griglia" id="griglia"></div>
+    <div class="legenda"><span><i style="background:var(--accento)"></i>Gara</span><span><i style="background:var(--ok)"></i>Allenamento</span><span><i style="background:var(--tenue)"></i>Altro</span></div>
+  </section>
+  <section id="giorno-sez" hidden>
+    <h2 id="giorno-titolo">Giorno</h2>
+    <div id="giorno-lista"></div>
+    <button class="gran" id="aggiungi-voce" type="button">Aggiungi una voce</button>
+  </section>
+</div>
+
+<!-- PRESENZE -->
+<div class="scheda" id="t-pres">
+  <section>
+    <h2>Presenze</h2>
+    <p class="aiuto" id="pres-vuoto" hidden>Gli elenchi dei ginnasti non ci sono ancora: li aggiungerà Yuri.</p>
+    <div id="pres-comandi">
+      <label>Giorno</label><input type="date" id="pres-data">
+      <label>Gruppo</label><div class="riga" id="pres-gruppi"></div>
+    </div>
+  </section>
+  <section id="pres-sez" hidden>
+    <h2 id="pres-titolo">Elenco</h2>
+    <div id="pres-lista"></div>
+    <p class="conto" id="pres-conto"></p>
+  </section>
+</div>
+
+<!-- CHAT -->
+<div class="scheda" id="t-chat">
+  <section>
+    <h2>Chat</h2>
+    <div id="chat-lista"><p class="aiuto">Carico…</p></div>
+    <div class="invio"><input id="chat-testo" maxlength="500" placeholder="Scrivi qui…" autocomplete="off"><button class="gran" id="chat-invia" type="button">Invia</button></div>
+  </section>
+</div>
+
+<!-- MEMO e AIUTO -->
 <div class="scheda" id="t-memo">
   <section>
     <h2>Memo</h2>
@@ -169,22 +259,23 @@
     <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
     <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
   </section>
-</div>
-
-<div class="scheda" id="t-altro">
   <section>
-    <h2>Cosa sa fare</h2>
-    <p class="aiuto">Il giro attrezzi di ogni giorno, la settimana in corso e i memo per te e per gli altri. Tutto qui dentro: non serve tornare alla chat. Se sbagli non succede niente di brutto.</p>
-    <p class="aiuto">In chat puoi anche scrivere i comandi a mano, per esempio <b>/giro</b> o <b>/memo</b>: il bot risponde anche lì.</p>
+    <h2>Aiuto</h2>
+    <p class="aiuto"><b>Oggi</b>: il giro di oggi e i promemoria per te. <b>Calendario</b>: gare e attività; tocca un giorno per aggiungere, tocca una voce per i dettagli e per dire se vieni. <b>Presenze</b>: chi c'è e chi manca. <b>Chat</b>: scrivere agli altri senza uscire. Se sbagli non succede niente di brutto.</p>
   </section>
 </div>
 <footer>Niente password, niente app da installare.<br><span id="diag" style="opacity:.6;letter-spacing:.08em;text-transform:none"></span></footer>
 </main>
 
+<!-- foglio di una voce del calendario: dettagli o modulo -->
+<div class="foglio" id="foglio" hidden></div>
+
 <nav id="barra" aria-label="Sezioni" hidden>
-  <button type="button" class="su" data-tab="giro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>Giro</button>
+  <button type="button" class="su" data-tab="oggi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>Oggi<span class="badge" id="badge" hidden></span></button>
+  <button type="button" data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario</button>
+  <button type="button" data-tab="pres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>Presenze</button>
+  <button type="button" data-tab="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat</button>
   <button type="button" data-tab="memo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Memo</button>
-  <button type="button" data-tab="altro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>Aiuto</button>
 </nav>
 <div id="viewer" hidden>
   <img id="viewer-img" alt="Foglio del giro attrezzi">
@@ -372,11 +463,253 @@
     voci.concat(conTutti ? ['tutti'] : []).forEach(function (n) { var x = document.createElement('option'); x.value = n; x.textContent = n === 'tutti' ? 'Tutti' : n; sel.appendChild(x); });
   }
 
+  // ---- aiutanti (21/10/2026) ----
+  var STATO = {};
+  var MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+  function el(tag, cls, testo) { var e = document.createElement(tag); if (cls) e.className = cls; if (testo != null) e.textContent = testo; return e; }
+  function chiamaJson(percorso, corpo) {
+    return chiama(percorso, corpo ? { corpo: corpo } : {}).then(function (r) {
+      return r.json().then(function (j) { if (!r.ok) throw new Error(j.errore || ('errore ' + r.status)); return j; });
+    });
+  }
+  function dataLunga(ymd) { return new Date(ymd + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function ymdDi(a, m, g) { return a + '-' + ('0' + m).slice(-2) + '-' + ('0' + g).slice(-2); }
+  function quandoBreve(iso) { try { return new Date(iso).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+  function conferma(testo, ok) { if (tg && tg.showConfirm) { try { tg.showConfirm(testo, function (s) { if (s) ok(); }); return; } catch (e) {} } if (window.confirm(testo)) ok(); }
+  function errAvviso(titolo) { return function (e) { avviso(titolo, String((e && e.message) || e)); }; }
+  // gruppo di bottoni: scelta singola o multipla, si ridisegna da solo
+  function gruppoChips(cont, voci, selezionato, quandoToccato) {
+    cont.innerHTML = '';
+    voci.forEach(function (v) {
+      var b = el('button', 'chip' + (selezionato(v[0]) ? ' on' : ''), v[1]); b.type = 'button';
+      b.onclick = function () { tocco(); quandoToccato(v[0]); gruppoChips(cont, voci, selezionato, quandoToccato); };
+      cont.appendChild(b);
+    });
+  }
+
+  // ---- promemoria per te ----
+  function badge(n) { var b = $('badge'); b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n); }
+  function caricaProm() {
+    chiamaJson('/api/notifiche').then(function (j) {
+      var l = $('lista-prom'); l.innerHTML = ''; $('sez-prom').hidden = !j.lista.length;
+      j.lista.slice(0, 8).forEach(function (x) {
+        var d = el('div', 'promemoria' + (x.letto ? ' letto' : '')), t = el('div', 'testo', x.testo);
+        t.appendChild(el('span', 'quando', quandoBreve(x.quando))); d.appendChild(t); l.appendChild(d);
+      });
+      $('prom-letti').hidden = !j.nonLette; badge(j.nonLette);
+    }).catch(function () {});
+  }
+  $('prom-letti').onclick = function () { tocco(); chiamaJson('/api/notifiche/letto', { id: 'tutte' }).then(caricaProm).catch(errAvviso('Non riesco')); };
+
+  // ---- calendario ----
+  var meseCorr = '', eventiMese = [], giornoSel = '', fo = $('foglio');
+  function caricaMese(m) {
+    meseCorr = m; var p = m.split('-');
+    $('mese-titolo').textContent = MESI[Number(p[1]) - 1] + ' ' + p[0];
+    disegnaGriglia();
+    chiamaJson('/api/eventi?mese=' + m).then(function (j) {
+      if (meseCorr !== m) return;
+      eventiMese = j.eventi; disegnaGriglia();
+      if (giornoSel && giornoSel.slice(0, 7) === m) mostraGiorno(giornoSel, true);
+    }).catch(errAvviso('Non riesco a leggere il calendario'));
+  }
+  function disegnaGriglia() {
+    var g = $('griglia'); g.innerHTML = '';
+    ['L', 'M', 'M', 'G', 'V', 'S', 'D'].forEach(function (n) { g.appendChild(el('div', 'nome-g', n)); });
+    var p = meseCorr.split('-').map(Number), vuoti = (new Date(p[0], p[1] - 1, 1).getDay() + 6) % 7, quanti = new Date(p[0], p[1], 0).getDate();
+    for (var i = 0; i < vuoti; i++) g.appendChild(el('div', 'giorno-c vuoto'));
+    for (var d = 1; d <= quanti; d++) {
+      var ymd = ymdDi(p[0], p[1], d), b = el('button', 'giorno-c' + (ymd === STATO.oggiData ? ' oggi' : '') + (ymd === giornoSel ? ' sel' : ''), String(d)), pt = el('div', 'punti'), tipi = {};
+      b.type = 'button';
+      eventiMese.filter(function (e) { return e.data === ymd; }).forEach(function (e) { tipi[e.tipo] = 1; });
+      Object.keys(tipi).forEach(function (t) { pt.appendChild(el('span', 'punto ' + t)); });
+      b.appendChild(pt);
+      b.onclick = (function (y) { return function () { tocco(); mostraGiorno(y); }; })(ymd);
+      g.appendChild(b);
+    }
+  }
+  function sottotitolo(e) {
+    var s = (e.ora || 'orario da definire') + (e.luogo ? ' · ' + e.luogo : '');
+    if (e.tipo === 'gara' && e.gara) s += ' · ' + e.gara.programma + ' ' + (e.gara.sesso === 'M' ? 'M' : 'F') + ' ' + (e.gara.modo === 'squadra' ? 'squadra' : 'individuale');
+    return s;
+  }
+  function mostraGiorno(ymd, senzaScroll) {
+    giornoSel = ymd; disegnaGriglia();
+    $('giorno-sez').hidden = false; $('giorno-titolo').textContent = dataLunga(ymd);
+    var l = $('giorno-lista'); l.innerHTML = '';
+    var voci = eventiMese.filter(function (e) { return e.data === ymd; });
+    if (!voci.length) l.appendChild(el('p', 'aiuto', 'Niente in programma.'));
+    voci.forEach(function (e) {
+      var b = el('button', 'voce ' + e.tipo); b.type = 'button';
+      b.appendChild(el('div', 't', e.titolo)); b.appendChild(el('div', 'm', sottotitolo(e)));
+      b.onclick = function () { tocco(); apriVoce(e); }; l.appendChild(b);
+    });
+    if (!senzaScroll) $('giorno-sez').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('mese-prec').onclick = function () { tocco(); cambiaMese(-1); };
+  $('mese-succ').onclick = function () { tocco(); cambiaMese(1); };
+  function cambiaMese(d) { var p = meseCorr.split('-').map(Number), x = new Date(p[0], p[1] - 1 + d, 1); giornoSel = ''; $('giorno-sez').hidden = true; caricaMese(x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2)); }
+  $('aggiungi-voce').onclick = function () { tocco(); apriModulo(null, giornoSel); };
+
+  // ---- il foglio: dettagli di una voce e modulo per scriverla o cambiarla ----
+  function apriFoglio() { fo.hidden = false; document.body.style.overflow = 'hidden'; fo.scrollTop = 0; try { tg.BackButton.show(); tg.BackButton.onClick(chiudiFoglio); } catch (e) {} }
+  function chiudiFoglio() { fo.hidden = true; fo.innerHTML = ''; document.body.style.overflow = ''; try { tg.BackButton.hide(); tg.BackButton.offClick(chiudiFoglio); } catch (e) {} }
+  function testaFoglio(titolo) { fo.innerHTML = ''; var x = el('button', 'chiudi-f', '✕'); x.type = 'button'; x.onclick = chiudiFoglio; fo.appendChild(x); fo.appendChild(el('h3', null, titolo)); }
+  function riga(et, testo) { var r = el('div', 'riga-info'); r.appendChild(el('b', null, et + ': ')); r.appendChild(document.createTextNode(testo)); fo.appendChild(r); return r; }
+  function apriVoce(e) {
+    testaFoglio(e.titolo);
+    riga('Quando', dataLunga(e.data) + (e.ora ? ', ore ' + e.ora : ' (orario da definire)'));
+    if (e.luogo) riga('Dove', e.luogo);
+    if (e.tipo === 'gara' && e.gara) {
+      var g = e.gara;
+      riga('Gara', g.programma + ' ' + (g.sesso === 'M' ? 'maschile' : 'femminile') + ' · ' + (g.modo === 'squadra' ? 'squadra' : 'individuale'));
+      var r = riga('Livelli', g.livelli.length ? '' : 'non ancora scelti'); g.livelli.forEach(function (l) { r.appendChild(el('span', 'etichetta', l)); });
+      if (g.ginnaste.length) { var q = riga('Ginnaste', ''); g.ginnaste.forEach(function (x) { q.appendChild(el('span', 'etichetta', x.nome + (x.livello ? ' · ' + x.livello : ''))); }); }
+      else riga('Ginnaste', 'non ancora scelte');
+    }
+    riga('Chi va', e.portano.length ? e.portano.join(', ') : 'non ancora scelto');
+    if (e.note) riga('Note', e.note);
+    var si = Object.keys(e.risposte).filter(function (n) { return e.risposte[n] === 'si'; }), no = Object.keys(e.risposte).filter(function (n) { return e.risposte[n] === 'no'; });
+    riga('Vengono', si.length ? si.join(', ') : 'nessuno ancora'); if (no.length) riga('Non vengono', no.join(', '));
+    var mia = e.risposte[io] || '', due = el('div', 'doppia');
+    var bs = el('button', 'gran' + (mia === 'si' ? ' on' : ''), 'Vengo'), bn = el('button', 'gran no' + (mia === 'no' ? ' on' : ''), 'Non vengo'); bs.type = bn.type = 'button';
+    function rispondi(v) { return function () { tocco(); chiamaJson('/api/evento/risposta', { id: e.id, risposta: mia === v ? '' : v }).then(function (j) { aggiornaVoce(j.evento); apriVoce(j.evento); }).catch(errAvviso('Non è partito')); }; }
+    bs.onclick = rispondi('si'); bn.onclick = rispondi('no'); due.appendChild(bs); due.appendChild(bn); fo.appendChild(due);
+    if (e.da === io || STATO.admin) {
+      var altri = el('div', 'doppia'), bm = el('button', 'gran sec', 'Cambia'), be = el('button', 'gran no sec', 'Togli'); bm.type = be.type = 'button';
+      bm.onclick = function () { tocco(); apriModulo(e, e.data); };
+      be.onclick = function () { conferma('Togliere questa voce dal calendario?', function () { chiamaJson('/api/evento/elimina', { id: e.id }).then(function () { chiudiFoglio(); avviso('Voce tolta', ''); caricaMese(meseCorr); }).catch(errAvviso('Non riesco')); }); };
+      altri.appendChild(bm); altri.appendChild(be); fo.appendChild(altri);
+    }
+    fo.appendChild(el('p', 'aiuto', 'Scritta da ' + e.da));
+    apriFoglio();
+  }
+  function aggiornaVoce(e) { eventiMese = eventiMese.map(function (x) { return x.id === e.id ? e : x; }); }
+  function apriModulo(e, data) {
+    var f = e ? JSON.parse(JSON.stringify(e)) : { id: '', titolo: '', tipo: 'gara', data: data || STATO.oggiData, ora: '', luogo: '', note: '', portano: [], gara: null };
+    if (!f.gara) f.gara = { sesso: 'F', programma: 'Silver', modo: 'individuale', livelli: [], ginnaste: [] };
+    testaFoglio(e ? 'Cambia la voce' : 'Nuova voce');
+    function campo(et, tag, tipo, valore, extra) { var l = el('label', null, et), c = el(tag); if (tipo) c.type = tipo; c.value = valore || ''; if (extra) extra(c); fo.appendChild(l); fo.appendChild(c); return c; }
+    var iTitolo = campo('Cosa', 'input', 'text', f.titolo, function (c) { c.maxLength = 80; c.placeholder = 'Per esempio: Gara con Sara'; });
+    fo.appendChild(el('label', null, 'Che tipo')); var cTipo = el('div', 'riga'); fo.appendChild(cTipo);
+    var iData = campo('Giorno', 'input', 'date', f.data), iOra = campo('Ora (se la sai)', 'input', 'time', f.ora);
+    var iLuogo = campo('Dove', 'input', 'text', f.luogo, function (c) { c.maxLength = 80; });
+    fo.appendChild(el('label', null, 'Chi va')); var cVa = el('div', 'riga'); fo.appendChild(cVa);
+    var boxGara = el('div'); fo.appendChild(boxGara);
+    var iNote = campo('Note', 'textarea', null, f.note, function (c) { c.maxLength = 400; });
+    gruppoChips(cVa, nomi.map(function (n) { return [n, n]; }), function (v) { return f.portano.indexOf(v) >= 0; }, function (v) { var i = f.portano.indexOf(v); if (i >= 0) f.portano.splice(i, 1); else f.portano.push(v); });
+    function disegnaTipo() { gruppoChips(cTipo, [['gara', 'Gara'], ['allenamento', 'Allenamento'], ['altro', 'Altro']], function (v) { return f.tipo === v; }, function (v) { f.tipo = v; disegnaGara(); }); }
+    function disegnaGara() {
+      boxGara.innerHTML = ''; if (f.tipo !== 'gara') return;
+      var g = f.gara;
+      function scelta(et, voci, chiave) { boxGara.appendChild(el('label', null, et)); var c = el('div', 'riga'); boxGara.appendChild(c); gruppoChips(c, voci, function (v) { return g[chiave] === v; }, function (v) { g[chiave] = v; }); }
+      scelta('Programma', [['Silver', 'Silver'], ['Gold', 'Gold']], 'programma');
+      scelta('Femminile o maschile', [['F', 'Femminile'], ['M', 'Maschile']], 'sesso');
+      scelta('Individuale o squadra', [['individuale', 'Individuale'], ['squadra', 'Squadra']], 'modo');
+      boxGara.appendChild(el('label', null, 'Livelli (anche più di uno)')); var cL = el('div', 'riga'); boxGara.appendChild(cL);
+      gruppoChips(cL, (STATO.livelli || []).map(function (l) { return [l, l]; }), function (v) { return g.livelli.indexOf(v) >= 0; }, function (v) { var i = g.livelli.indexOf(v); if (i >= 0) g.livelli.splice(i, 1); else g.livelli.push(v); });
+      boxGara.appendChild(el('p', 'aiuto', 'I livelli con il 3 (LA3, LB3, LC3, LD3) sono quelli senza parallele.'));
+      boxGara.appendChild(el('label', null, 'Ginnaste che vanno')); var lista = el('div'); boxGara.appendChild(lista);
+      function righe() {
+        lista.innerHTML = '';
+        g.ginnaste.forEach(function (x, i) {
+          var r = el('div', 'gin'), n = el('div', 'nome', x.nome + (x.livello ? ' · ' + x.livello : '')), b = el('button', 'chip', 'Togli'); b.type = 'button'; b.style.flex = '0 0 auto';
+          b.onclick = function () { g.ginnaste.splice(i, 1); righe(); }; r.appendChild(n); r.appendChild(b); lista.appendChild(r);
+        });
+      }
+      righe();
+      var agg = el('div', 'riga'), iN = el('input'), dl = el('datalist'), sL = el('select'), bA = el('button', 'chip', 'Aggiungi'); iN.placeholder = 'Nome'; iN.maxLength = 40; iN.setAttribute('list', 'elenco-ginnasti'); dl.id = 'elenco-ginnasti'; bA.type = 'button'; bA.style.flex = '0 0 auto';
+      (STATO.ginnasti || []).forEach(function (x) { var o = el('option'); o.value = x.nome; dl.appendChild(o); });
+      var o0 = el('option', null, 'Livello'); o0.value = ''; sL.appendChild(o0); (STATO.livelli || []).forEach(function (l) { var o = el('option', null, l); o.value = l; sL.appendChild(o); });
+      iN.onchange = function () { var t = (STATO.ginnasti || []).filter(function (x) { return x.nome === iN.value && x.livello; })[0]; if (t) sL.value = t.livello; };
+      bA.onclick = function () { var n = iN.value.replace(/\s+/g, ' ').trim(); if (!n) { avviso('Scrivi il nome', ''); return; } tocco(); g.ginnaste.push({ nome: n, livello: sL.value }); iN.value = ''; righe(); };
+      agg.appendChild(iN); agg.appendChild(sL); agg.appendChild(bA); boxGara.appendChild(agg); boxGara.appendChild(dl);
+    }
+    disegnaTipo(); disegnaGara();
+    var due = el('div', 'doppia'), bS = el('button', 'gran', e ? 'Salva' : 'Aggiungi'), bX = el('button', 'gran no sec', 'Annulla'); bS.type = bX.type = 'button'; bX.onclick = chiudiFoglio;
+    bS.onclick = function () {
+      var titolo = iTitolo.value.replace(/\s+/g, ' ').trim();
+      if (!titolo) { avviso('Manca il titolo', 'Scrivi cosa c’è in programma'); return; }
+      if (!iData.value) { avviso('Manca il giorno', ''); return; }
+      bS.disabled = true; tocco();
+      var corpo = { id: f.id, titolo: titolo, tipo: f.tipo, data: iData.value, ora: iOra.value, luogo: iLuogo.value, note: iNote.value, portano: f.portano, gara: f.tipo === 'gara' ? f.gara : null };
+      chiamaJson('/api/evento', corpo).then(function (j) {
+        chiudiFoglio(); avviso(e ? 'Voce cambiata' : 'Voce aggiunta', j.evento.titolo);
+        giornoSel = j.evento.data; caricaMese(giornoSel.slice(0, 7));
+      }).catch(function (x) { bS.disabled = false; avviso('Non è partito', String(x.message || x)); });
+    };
+    due.appendChild(bS); due.appendChild(bX); fo.appendChild(due);
+    apriFoglio();
+  }
+
+  // ---- presenze (gli elenchi li carica Yuri: all'inizio sono vuoti) ----
+  var gin = { ginnasti: [], gruppi: [] }, presGruppo = '', presSegni = {};
+  function caricaPres() {
+    chiamaJson('/api/ginnasti').then(function (j) {
+      gin = j; STATO.ginnasti = j.ginnasti;
+      var vuoto = !j.ginnasti.length; $('pres-vuoto').hidden = !vuoto; $('pres-comandi').hidden = vuoto; if (vuoto) { $('pres-sez').hidden = true; return; }
+      if (!$('pres-data').value) $('pres-data').value = STATO.oggiData;
+      if (j.gruppi.indexOf(presGruppo) < 0) presGruppo = '';
+      disegnaGruppiPres(); caricaSegni();
+    }).catch(errAvviso('Non riesco a leggere gli elenchi'));
+  }
+  function disegnaGruppiPres() { chips($('pres-gruppi'), gin.gruppi.map(function (g) { return [g, g]; }), presGruppo, function (v) { presGruppo = v; disegnaGruppiPres(); caricaSegni(); }); }
+  $('pres-data').onchange = function () { caricaSegni(); };
+  function caricaSegni() {
+    var d = $('pres-data').value;
+    if (!presGruppo || !d) { $('pres-sez').hidden = true; return; }
+    chiamaJson('/api/presenze?data=' + d + '&gruppo=' + encodeURIComponent(presGruppo)).then(function (j) { presSegni = j.segni; disegnaPres(); }).catch(errAvviso('Non riesco a leggere le presenze'));
+  }
+  function disegnaPres() {
+    var d = $('pres-data').value, l = $('pres-lista'); l.innerHTML = ''; $('pres-sez').hidden = false; $('pres-titolo').textContent = presGruppo + ' · ' + dataLunga(d);
+    var elenco = gin.ginnasti.filter(function (x) { return x.gruppo === presGruppo; }), p = 0, a = 0;
+    elenco.forEach(function (x) {
+      var s = presSegni[x.nome] || '', r = el('div', 'gin'), n = el('div', 'nome', x.nome + (x.livello ? ' · ' + x.livello : ''));
+      var bp = el('button', 'tasto p' + (s === 'p' ? ' on' : ''), 'È qui'), ba = el('button', 'tasto a' + (s === 'a' ? ' on' : ''), 'Manca'); bp.type = ba.type = 'button'; bp.style.width = ba.style.width = '74px'; bp.style.fontSize = ba.style.fontSize = '14px';
+      if (s === 'p') p++; if (s === 'a') a++;
+      function segna(v) { return function () {
+        tocco(); var nuovo = s === v ? '' : v;
+        chiamaJson('/api/presenze', { data: d, gruppo: presGruppo, nome: x.nome, stato: nuovo }).then(function (j) { presSegni = j.segni; disegnaPres(); }).catch(errAvviso('Non è partito'));
+      }; }
+      bp.onclick = segna('p'); ba.onclick = segna('a'); r.appendChild(n); r.appendChild(bp); r.appendChild(ba); l.appendChild(r);
+    });
+    $('pres-conto').textContent = 'Presenti ' + p + ' · Assenti ' + a + ' · Da segnare ' + (elenco.length - p - a);
+  }
+
+  // ---- chat dell'app: si aggiorna ogni 5 secondi finche' e' aperta ----
+  var chatUltimo = 0, chatTimer = null, chatPrima = true;
+  function chatCarica() {
+    chiamaJson('/api/chat?dopo=' + chatUltimo).then(function (j) {
+      var l = $('chat-lista'); if (chatPrima) { l.innerHTML = ''; chatPrima = false; if (!j.messaggi.length) l.appendChild(el('p', 'aiuto', 'Ancora nessun messaggio. Scrivi tu per primo.')); }
+      if (!j.messaggi.length) return;
+      if (l.querySelector('.aiuto')) l.innerHTML = '';
+      var inFondo = l.scrollTop + l.clientHeight >= l.scrollHeight - 40;
+      j.messaggi.forEach(function (m) {
+        var b = el('div', 'bolla' + (m.da === io ? ' mia' : '')), c = el('div');
+        if (m.da !== io) c.appendChild(el('span', 'chi', m.da));
+        c.appendChild(el('span', 'ora', quandoBreve(m.quando))); b.appendChild(c); b.appendChild(el('div', null, m.testo)); l.appendChild(b); chatUltimo = Math.max(chatUltimo, m.n);
+      });
+      if (inFondo || j.messaggi.some(function (m) { return m.da === io; })) l.scrollTop = l.scrollHeight;
+    }).catch(function () {});
+  }
+  function chatInvia() {
+    var i = $('chat-testo'), t = i.value.replace(/\s+/g, ' ').trim(); if (!t) return;
+    $('chat-invia').disabled = true;
+    chiamaJson('/api/chat', { testo: t }).then(function () { i.value = ''; $('chat-invia').disabled = false; chatCarica(); }).catch(function (e) { $('chat-invia').disabled = false; avviso('Non è partito', String(e.message || e)); });
+  }
+  $('chat-invia').onclick = function () { tocco(); chatInvia(); };
+  $('chat-testo').onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); chatInvia(); } };
+
   // ---- schede ----
   function scheda(nome) {
-    ['giro', 'memo', 'altro'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
+    ['oggi', 'cal', 'pres', 'chat', 'memo'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
     document.querySelectorAll('#barra button').forEach(function (b) { b.classList.toggle('su', b.getAttribute('data-tab') === nome); });
     try { sessionStorage.setItem('jarvis-mini-scheda', nome); } catch (e) {}
+    clearInterval(chatTimer); chatTimer = null;
+    if (nome === 'oggi') caricaProm();
+    if (nome === 'cal' && !meseCorr) caricaMese((STATO.oggiData || '').slice(0, 7));
+    if (nome === 'pres') caricaPres();
+    if (nome === 'chat') { chatCarica(); chatTimer = setInterval(function () { if (!document.hidden) chatCarica(); }, 5000); }
     window.scrollTo(0, 0); try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {}
   }
   document.querySelectorAll('#barra button').forEach(function (b) { b.onclick = function () { scheda(b.getAttribute('data-tab')); }; });
@@ -393,7 +726,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 17 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 18 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
@@ -403,11 +736,11 @@
     return r.json();
   }).then(function (s) {
     if (!s) return;
-    io = s.chi; nomi = s.nomi; $('blocco').hidden = true; $('app').hidden = false; $('barra').hidden = false;
+    STATO = s; io = s.chi; nomi = s.nomi; $('blocco').hidden = true; $('app').hidden = false; $('barra').hidden = false;
     $('saluto').textContent = saluto(s.chi, s.settimana); $('saluto').hidden = false;
     $('riga-settimana').textContent = s.settimana ? 'Siamo nella settimana ' + s.settimana + ' del giro.' : 'La settimana del giro non è ancora impostata.';
     riempi($('di-chi'), nomi, false); riempi($('per-chi'), nomi, true);
-    disegna(); $('diag').textContent = diag;
+    disegna(); $('diag').textContent = diag; badge(s.nonLette || 0); caricaProm();
     try { var ult = sessionStorage.getItem('jarvis-mini-scheda'); if (ult && $('t-' + ult)) scheda(ult); } catch (e) {}
   }).catch(function (e) { bloccato(diag + ' · niente rete: ' + String(e.message || e)); });
 })();
