@@ -137,7 +137,6 @@
   .gin .nome { flex: 1; font-size: 16px; } .gin .tasto { width: 56px; height: 46px; background: rgba(242,179,61,.05); border: 1px solid var(--bordo); border-radius: 3px; font: 700 16px var(--font-hud); cursor: pointer; }
   .gin .tasto.p.on { background: rgba(95,240,168,.25); border-color: var(--ok); color: var(--ok); } .gin .tasto.a.on { background: rgba(229,72,77,.25); border-color: #e5484d; color: #ffb3b5; }
   .conto { margin: 8px 0 0; color: var(--tenue); font: 600 13px var(--font-hud); letter-spacing: .1em; text-transform: uppercase; }
-  #chat-lista { max-height: calc(100vh - 330px); min-height: 200px; overflow-y: auto; padding: 4px 2px; }
   .bolla { max-width: 82%; margin: 6px 0; padding: 8px 11px; background: rgba(0,0,0,.34); border: 1px solid var(--bordo); border-radius: 3px; word-break: break-word; }
   .bolla.mia { margin-left: auto; background: rgba(242,179,61,.14); border-color: var(--accento); }
   .bolla .chi { color: var(--accento); font: 700 11px var(--font-hud); letter-spacing: .14em; text-transform: uppercase; } .bolla .ora { color: var(--tenue); font-size: 11px; margin-left: 6px; }
@@ -234,14 +233,6 @@
   </section>
 </div>
 
-<!-- CHAT -->
-<div class="scheda" id="t-chat">
-  <section>
-    <h2>Chat</h2>
-    <div id="chat-lista"><p class="aiuto">Carico…</p></div>
-    <div class="invio"><input id="chat-testo" maxlength="500" placeholder="Scrivi qui…" autocomplete="off"><button class="gran" id="chat-invia" type="button">Invia</button></div>
-  </section>
-</div>
 
 <!-- MEMO e AIUTO -->
 <div class="scheda" id="t-memo">
@@ -273,7 +264,7 @@
   </section>
   <section>
     <h2>Aiuto</h2>
-    <p class="aiuto"><b>Oggi</b>: gli impegni di tutta la settimana (da lunedì a domenica), i promemoria (tuoi e di tutti) e il giro di oggi. <b>Promemoria</b>: per scriverne uno nuovo, per te o per tutti. <b>Calendario</b>: gare e attività; tocca un giorno per aggiungere, tocca una voce per i dettagli e per dire se vieni. <b>Presenze</b>: chi c'è e chi manca. <b>Chat</b>: scrivere agli altri senza uscire. Se sbagli non succede niente di brutto.</p>
+    <p class="aiuto"><b>Oggi</b>: gli impegni di tutta la settimana (da lunedì a domenica), i promemoria (tuoi e di tutti) e il giro di oggi. <b>Promemoria</b>: per scriverne uno nuovo, per te o per tutti. <b>Calendario</b>: gare e attività; tocca un giorno per aggiungere, tocca una voce per i dettagli e per dire se vieni. <b>Presenze</b>: chi c'è e chi manca. Se sbagli non succede niente di brutto.</p>
   </section>
 </div>
 <footer>Niente password, niente app da installare.<br><span id="diag" style="opacity:.6;letter-spacing:.08em;text-transform:none"></span></footer>
@@ -286,7 +277,6 @@
   <button type="button" class="su" data-tab="oggi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>Oggi<span class="badge" id="badge" hidden></span></button>
   <button type="button" data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario</button>
   <button type="button" data-tab="pres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>Presenze</button>
-  <button type="button" data-tab="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat</button>
   <button type="button" data-tab="memo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Promemoria</button>
 </nav>
 <div id="viewer" hidden>
@@ -737,41 +727,16 @@
     $('pres-conto').textContent = 'Presenti ' + p + ' · Assenti ' + a + ' · Da segnare ' + (elenco.length - p - a);
   }
 
-  // ---- chat dell'app: si aggiorna ogni 5 secondi finche' e' aperta ----
-  var chatUltimo = 0, chatTimer = null, chatPrima = true;
-  function chatCarica() {
-    chiamaJson('/api/chat?dopo=' + chatUltimo).then(function (j) {
-      var l = $('chat-lista'); if (chatPrima) { l.innerHTML = ''; chatPrima = false; if (!j.messaggi.length) l.appendChild(el('p', 'aiuto', 'Ancora nessun messaggio. Scrivi tu per primo.')); }
-      if (!j.messaggi.length) return;
-      if (l.querySelector('.aiuto')) l.innerHTML = '';
-      var inFondo = l.scrollTop + l.clientHeight >= l.scrollHeight - 40;
-      j.messaggi.forEach(function (m) {
-        var b = el('div', 'bolla' + (m.da === io ? ' mia' : '')), c = el('div');
-        if (m.da !== io) c.appendChild(el('span', 'chi', m.da));
-        c.appendChild(el('span', 'ora', quandoBreve(m.quando))); b.appendChild(c); b.appendChild(el('div', null, m.testo)); l.appendChild(b); chatUltimo = Math.max(chatUltimo, m.n);
-      });
-      if (inFondo || j.messaggi.some(function (m) { return m.da === io; })) l.scrollTop = l.scrollHeight;
-    }).catch(function () {});
-  }
-  function chatInvia() {
-    var i = $('chat-testo'), t = i.value.replace(/\s+/g, ' ').trim(); if (!t) return;
-    $('chat-invia').disabled = true;
-    chiamaJson('/api/chat', { testo: t }).then(function () { i.value = ''; $('chat-invia').disabled = false; chatCarica(); }).catch(function (e) { $('chat-invia').disabled = false; avviso('Non è partito', String(e.message || e)); });
-  }
-  $('chat-invia').onclick = function () { tocco(); chatInvia(); };
-  $('chat-testo').onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); chatInvia(); } };
 
   // ---- schede ----
   function scheda(nome) {
-    ['oggi', 'cal', 'pres', 'chat', 'memo'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
+    ['oggi', 'cal', 'pres', 'memo'].forEach(function (n) { $('t-' + n).classList.toggle('su', n === nome); });
     document.querySelectorAll('#barra button').forEach(function (b) { b.classList.toggle('su', b.getAttribute('data-tab') === nome); });
     try { sessionStorage.setItem('jarvis-mini-scheda', nome); } catch (e) {}
-    clearInterval(chatTimer); chatTimer = null;
     clearInterval(oggiTimer); oggiTimer = null;
     if (nome === 'oggi') { caricaOggi(); avviaOggi(); }
     if (nome === 'cal' && !meseCorr) caricaMese((STATO.oggiData || '').slice(0, 7));
     if (nome === 'pres') caricaPres();
-    if (nome === 'chat') { chatCarica(); chatTimer = setInterval(function () { if (!document.hidden) chatCarica(); }, 5000); }
     window.scrollTo(0, 0); try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {}
   }
   document.querySelectorAll('#barra button').forEach(function (b) { b.onclick = function () { scheda(b.getAttribute('data-tab')); }; });
@@ -788,7 +753,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 21 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 22 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
