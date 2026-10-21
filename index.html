@@ -547,8 +547,8 @@
   }
   function sottotitolo(e) {
     var s = (e.ora || 'orario da definire') + (e.luogo ? ' · ' + e.luogo : '');
-    if (e.tipo === 'gara' && e.gara) s += ' · ' + e.gara.programma + ' ' + (e.gara.sesso === 'M' ? 'M' : 'F') + ' ' + (e.gara.modo === 'squadra' ? 'squadra' : 'individuale');
-    if (e.risposte && e.risposte[io] === 'si') s += ' · vengo'; else if (e.risposte && e.risposte[io] === 'no') s += ' · non vengo';
+    if (e.tipo === 'gara' && e.gara) s += ' · ' + e.gara.programma + ' ' + (e.gara.sesso === 'M' ? 'GAM' : 'GAF') + ' ' + (e.gara.modo === 'squadra' ? 'squadra' : 'individuale');
+    if (e.risposte && e.risposte[io] === 'si') s += ' · ci sono'; else if (e.risposte && e.risposte[io] === 'no') s += ' · non ci sono';
     return s;
   }
   function mostraGiorno(ymd, senzaScroll) {
@@ -626,7 +626,7 @@
     if (e.luogo) riga('Dove', e.luogo);
     if (e.tipo === 'gara' && e.gara) {
       var g = e.gara;
-      riga('Gara', g.programma + ' ' + (g.sesso === 'M' ? 'maschile' : 'femminile') + ' · ' + (g.modo === 'squadra' ? 'squadra' : 'individuale'));
+      riga('Gara', g.programma + ' ' + (g.sesso === 'M' ? 'GAM' : 'GAF') + ' · ' + (g.modo === 'squadra' ? 'squadra' : 'individuale'));
       var r = riga('Livelli', g.livelli.length ? '' : 'non ancora scelti'); g.livelli.forEach(function (l) { r.appendChild(el('span', 'etichetta', l)); });
       if (g.ginnaste.length) { var q = riga('Ginnaste', ''); g.ginnaste.forEach(function (x) { q.appendChild(el('span', 'etichetta', x.nome + (x.livello ? ' · ' + x.livello : ''))); }); }
       else riga('Ginnaste', 'non ancora scelte');
@@ -634,9 +634,9 @@
     riga('Chi va', e.portano.length ? e.portano.join(', ') : 'non ancora scelto');
     if (e.note) riga('Note', e.note);
     var si = Object.keys(e.risposte).filter(function (n) { return e.risposte[n] === 'si'; }), no = Object.keys(e.risposte).filter(function (n) { return e.risposte[n] === 'no'; });
-    riga('Vengono', si.length ? si.join(', ') : 'nessuno ancora'); if (no.length) riga('Non vengono', no.join(', '));
+    riga('Ci sono', si.length ? si.join(', ') : 'nessuno ancora'); if (no.length) riga('Non ci sono', no.join(', '));
     var mia = e.risposte[io] || '', due = el('div', 'doppia');
-    var bs = el('button', 'gran' + (mia === 'si' ? ' on' : ''), 'Vengo'), bn = el('button', 'gran no' + (mia === 'no' ? ' on' : ''), 'Non vengo'); bs.type = bn.type = 'button';
+    var bs = el('button', 'gran' + (mia === 'si' ? ' on' : ''), 'Ci sono'), bn = el('button', 'gran no' + (mia === 'no' ? ' on' : ''), 'Non ci sono'); bs.type = bn.type = 'button';
     function rispondi(v) { return function () { tocco(); chiamaJson('/api/evento/risposta', { id: e.id, risposta: mia === v ? '' : v }).then(function (j) { aggiornaVoce(j.evento); apriVoce(j.evento); caricaOggi(); }).catch(errAvviso('Non è partito')); }; }
     bs.onclick = rispondi('si'); bn.onclick = rispondi('no'); due.appendChild(bs); due.appendChild(bn); fo.appendChild(due);
     apriFoglio();
@@ -663,7 +663,7 @@
       var g = f.gara;
       function scelta(et, voci, chiave) { boxGara.appendChild(el('label', null, et)); var c = el('div', 'riga'); boxGara.appendChild(c); gruppoChips(c, voci, function (v) { return g[chiave] === v; }, function (v) { g[chiave] = v; }); }
       scelta('Programma', [['Silver', 'Silver'], ['Gold', 'Gold']], 'programma');
-      scelta('Femminile o maschile', [['F', 'Femminile'], ['M', 'Maschile']], 'sesso');
+      scelta('GAF o GAM', [['F', 'GAF'], ['M', 'GAM']], 'sesso');
       scelta('Individuale o squadra', [['individuale', 'Individuale'], ['squadra', 'Squadra']], 'modo');
       boxGara.appendChild(el('label', null, 'Livelli (anche più di uno)')); var cL = el('div', 'riga'); boxGara.appendChild(cL);
       gruppoChips(cL, (STATO.livelli || []).map(function (l) { return [l, l]; }), function (v) { return g.livelli.indexOf(v) >= 0; }, function (v) { var i = g.livelli.indexOf(v); if (i >= 0) g.livelli.splice(i, 1); else g.livelli.push(v); });
@@ -788,7 +788,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 20 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 21 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
