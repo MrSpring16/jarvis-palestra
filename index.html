@@ -142,6 +142,7 @@
   .bolla.mia { margin-left: auto; background: rgba(242,179,61,.14); border-color: var(--accento); }
   .bolla .chi { color: var(--accento); font: 700 11px var(--font-hud); letter-spacing: .14em; text-transform: uppercase; } .bolla .ora { color: var(--tenue); font-size: 11px; margin-left: 6px; }
   .invio { display: flex; gap: 8px; margin-top: 8px; } .invio input { flex: 1; } .invio .gran { width: auto; padding: 0 18px; }
+  .giorno-t { margin: 12px 0 2px; color: var(--tenue); font: 700 12px var(--font-hud); letter-spacing: .2em; text-transform: uppercase; } .giorno-t.oggi { color: var(--accento-testo); }
   details.sezione > summary { cursor: pointer; padding: 6px 0; font: 700 12px var(--font-hud); letter-spacing: .3em; text-transform: uppercase; color: var(--accento); }
 
 </style>
@@ -173,6 +174,26 @@
     <h2>Per te</h2>
     <div id="lista-prom"></div>
     <button class="gran sec" id="prom-letti" type="button" hidden>Ho letto tutto</button>
+  </section>
+  <section>
+    <h2 id="sett-titolo">Impegni della settimana</h2>
+    <div id="lista-sett"><p class="aiuto">Carico…</p></div>
+    <button class="gran sec" id="aggiungi-impegno" type="button">Aggiungi un impegno</button>
+  </section>
+  <section>
+    <h2>Memo</h2>
+    <div id="lista-memo-oggi"></div>
+    <details class="sezione" id="nuovo-memo">
+      <summary>Scrivi un memo</summary>
+      <label>Per chi</label>
+      <select id="per-chi"></select>
+      <label>Il memo (massimo 400 lettere)</label>
+      <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
+      <label>Per quando (se serve)</label>
+      <input type="date" id="data-memo">
+      <p class="aiuto">Senza giorno il memo resta qui finché qualcuno non lo segna come fatto.</p>
+      <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
+    </details>
   </section>
   <section>
     <h2>Oggi in palestra</h2>
@@ -252,16 +273,8 @@
     <div id="lista"></div>
   </section>
   <section>
-    <h2>Scrivi un memo</h2>
-    <label>Per chi</label>
-    <select id="per-chi"></select>
-    <label>Il memo (massimo 400 lettere)</label>
-    <textarea id="testo-memo" maxlength="400" placeholder="Per esempio: portare il gesso sabato"></textarea>
-    <button class="gran" id="scrivi-memo" style="margin-top:8px">Scrivi il memo</button>
-  </section>
-  <section>
     <h2>Aiuto</h2>
-    <p class="aiuto"><b>Oggi</b>: il giro di oggi e i promemoria per te. <b>Calendario</b>: gare e attività; tocca un giorno per aggiungere, tocca una voce per i dettagli e per dire se vieni. <b>Presenze</b>: chi c'è e chi manca. <b>Chat</b>: scrivere agli altri senza uscire. Se sbagli non succede niente di brutto.</p>
+    <p class="aiuto"><b>Oggi</b>: gli impegni di tutta la settimana (da lunedì a domenica), i tuoi memo e il giro di oggi. <b>Calendario</b>: gare e attività; tocca un giorno per aggiungere, tocca una voce per i dettagli e per dire se vieni. <b>Presenze</b>: chi c'è e chi manca. <b>Chat</b>: scrivere agli altri senza uscire. Se sbagli non succede niente di brutto.</p>
   </section>
 </div>
 <footer>Niente password, niente app da installare.<br><span id="diag" style="opacity:.6;letter-spacing:.08em;text-transform:none"></span></footer>
@@ -409,24 +422,28 @@
     var l = $('lista'); l.innerHTML = '';
     if (!lista.length) { var v = document.createElement('p'); v.className = 'aiuto'; v.textContent = 'Nessun memo qui.'; l.appendChild(v); return; }
     lista.forEach(function (m) {
-      var c = document.createElement('div'); c.className = 'memo' + (m.fatto ? ' fatto' : '');
-      var t = document.createElement('div'); t.className = 'memo-testo'; t.textContent = m.testo;
-      var meta = document.createElement('div'); meta.className = 'memo-meta';
-      meta.textContent = '#' + m.n + ' · per ' + (m.per === 'tutti' ? 'tutti' : m.per) + ' · da ' + m.da + ' · ' + (m.quando || '').slice(0, 5);
-      c.appendChild(t); c.appendChild(meta);
-      if (conFatto && !m.fatto) {
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'fatto-b'; b.textContent = 'Fatto';
-        b.onclick = function () {
-          tocco(); b.disabled = true;
-          chiama('/api/fatto', { corpo: { n: m.n } }).then(function (r) { return r.json(); }).then(function (j) {
-            if (j.ok) { c.classList.add('esce'); setTimeout(function () { c.remove(); if (!l.children.length) disegnaMemo([], titolo, conFatto); }, 280); avviso('Memo tolto', '#' + m.n); }
-            else { b.disabled = false; avviso('Non posso toglierlo', j.messaggio || j.errore || ''); }
-          }).catch(function () { b.disabled = false; avviso('Niente rete', 'Riprova fra un attimo'); });
-        };
-        c.appendChild(b);
-      }
-      l.appendChild(c);
+      l.appendChild(cartaMemo(m, conFatto, function (c) { c.classList.add('esce'); setTimeout(function () { c.remove(); if (!l.children.length) disegnaMemo([], titolo, conFatto); }, 280); caricaOggi(); }));
     });
+  }
+  // una scheda di memo con il tasto Fatto (usata nella scheda Memo e in Oggi)
+  function cartaMemo(m, conFatto, dopoFatto) {
+    var c = document.createElement('div'); c.className = 'memo' + (m.fatto ? ' fatto' : '');
+    var t = document.createElement('div'); t.className = 'memo-testo'; t.textContent = m.testo;
+    var meta = document.createElement('div'); meta.className = 'memo-meta';
+    meta.textContent = '#' + m.n + ' · per ' + (m.per === 'tutti' ? 'tutti' : m.per) + ' · da ' + m.da + (m.data ? ' · per il ' + m.data.slice(8, 10) + '/' + m.data.slice(5, 7) : '') + ' · ' + (m.quando || '').slice(0, 5);
+    c.appendChild(t); c.appendChild(meta);
+    if (conFatto && !m.fatto) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'fatto-b'; b.textContent = 'Fatto';
+      b.onclick = function () {
+        tocco(); b.disabled = true;
+        chiama('/api/fatto', { corpo: { n: m.n } }).then(function (r) { return r.json(); }).then(function (j) {
+          if (j.ok) { avviso('Memo tolto', '#' + m.n); dopoFatto(c); }
+          else { b.disabled = false; avviso('Non posso toglierlo', j.messaggio || j.errore || ''); }
+        }).catch(function () { b.disabled = false; avviso('Niente rete', 'Riprova fra un attimo'); });
+      };
+      c.appendChild(b);
+    }
+    return c;
   }
   function caricaMemo(vista, nome, titolo) {
     vistaCorrente = { vista: vista, nome: nome, titolo: titolo };
@@ -449,11 +466,12 @@
     if (!per) { avviso('Scegli per chi', 'Tocca la tendina «Per chi»'); return; }
     if (!t) { avviso('Scrivi prima il memo', 'Per esempio: portare il gesso sabato'); return; }
     tocco(); $('scrivi-memo').disabled = true;
-    chiama('/api/memo', { corpo: { per: per, testo: t } }).then(function (r) {
+    chiama('/api/memo', { corpo: { per: per, testo: t, data: $('data-memo').value } }).then(function (r) {
       $('scrivi-memo').disabled = false;
       if (!r.ok) return errore(r).then(function (m) { avviso('Non è partito', m); });
       return r.json().then(function (j) {
-        $('testo-memo').value = ''; avviso('Memo scritto', '#' + j.n + ' per ' + (per === 'tutti' ? 'tutti' : per));
+        $('testo-memo').value = ''; $('data-memo').value = ''; $('nuovo-memo').open = false; avviso('Memo scritto', '#' + j.n + ' per ' + (per === 'tutti' ? 'tutti' : per));
+        caricaOggi();
         if (vistaCorrente) caricaMemo(vistaCorrente.vista, vistaCorrente.nome, vistaCorrente.titolo);
       });
     }).catch(function () { $('scrivi-memo').disabled = false; avviso('Niente rete', 'Riprova fra un attimo'); });
@@ -531,6 +549,7 @@
   function sottotitolo(e) {
     var s = (e.ora || 'orario da definire') + (e.luogo ? ' · ' + e.luogo : '');
     if (e.tipo === 'gara' && e.gara) s += ' · ' + e.gara.programma + ' ' + (e.gara.sesso === 'M' ? 'M' : 'F') + ' ' + (e.gara.modo === 'squadra' ? 'squadra' : 'individuale');
+    if (e.risposte && e.risposte[io] === 'si') s += ' · vengo'; else if (e.risposte && e.risposte[io] === 'no') s += ' · non vengo';
     return s;
   }
   function mostraGiorno(ymd, senzaScroll) {
@@ -551,6 +570,47 @@
   function cambiaMese(d) { var p = meseCorr.split('-').map(Number), x = new Date(p[0], p[1] - 1 + d, 1); giornoSel = ''; $('giorno-sez').hidden = true; caricaMese(x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2)); }
   $('aggiungi-voce').onclick = function () { tocco(); apriModulo(null, giornoSel); };
 
+  // ---- Oggi: gli impegni di tutta la settimana (da lunedi' a domenica, si azzera ogni lunedi') e i memo; si aggiorna da sola ----
+  var oggiTimer = null;
+  function lunediDi(ymd) { var d = new Date(ymd + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; }
+  function ymdData(d) { return ymdDi(d.getFullYear(), d.getMonth() + 1, d.getDate()); }
+  function caricaOggi() {
+    if (!STATO.oggiData) return;
+    caricaProm();
+    var lun = lunediDi(STATO.oggiData), dom = new Date(lun); dom.setDate(dom.getDate() + 6);
+    var da = ymdData(lun), a = ymdData(dom);
+    $('sett-titolo').textContent = 'Impegni della settimana · ' + lun.getDate() + (lun.getMonth() !== dom.getMonth() ? ' ' + MESI[lun.getMonth()].slice(0, 3).toLowerCase() : '') + '–' + dom.getDate() + ' ' + MESI[dom.getMonth()].slice(0, 3).toLowerCase();
+    Promise.all([chiamaJson('/api/eventi?da=' + da + '&a=' + a), chiamaJson('/api/memo?vista=miei')]).then(function (r) {
+      disegnaSettimana(r[0].eventi, lun); disegnaMemoOggi(r[1].memo, a);
+    }).catch(function () {});
+  }
+  function disegnaSettimana(eventi, lun) {
+    var l = $('lista-sett'); l.innerHTML = '';
+    if (!eventi.length) { l.appendChild(el('p', 'aiuto', 'Niente in programma questa settimana.')); return; }
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(lun); d.setDate(d.getDate() + i);
+      var ymd = ymdData(d), voci = eventi.filter(function (e) { return e.data === ymd; });
+      if (!voci.length) continue;
+      var passato = ymd < STATO.oggiData;
+      l.appendChild(el('div', 'giorno-t' + (ymd === STATO.oggiData ? ' oggi' : ''), dataLunga(ymd) + (ymd === STATO.oggiData ? ' · oggi' : '')));
+      voci.forEach(function (e) {
+        var b = el('button', 'voce ' + e.tipo); b.type = 'button'; if (passato) b.style.opacity = '.55';
+        b.appendChild(el('div', 't', e.titolo)); b.appendChild(el('div', 'm', sottotitolo(e)));
+        b.onclick = function () { tocco(); apriVoce(e); }; l.appendChild(b);
+      });
+    }
+  }
+  function disegnaMemoOggi(memo, fineSettimana) {
+    var l = $('lista-memo-oggi'); l.innerHTML = '';
+    // senza giorno: restano finche' qualcuno non li segna fatti; con giorno: compaiono fino a domenica e restano se in ritardo
+    var lista = memo.filter(function (m) { return !m.data || m.data <= fineSettimana; }).sort(function (x, y) { return (x.data || '9999').localeCompare(y.data || '9999') || x.n - y.n; });
+    if (!lista.length) { l.appendChild(el('p', 'aiuto', 'Nessun memo aperto.')); return; }
+    lista.forEach(function (m) { l.appendChild(cartaMemo(m, true, function (c) { c.classList.add('esce'); setTimeout(caricaOggi, 280); })); });
+  }
+  function avviaOggi() { clearInterval(oggiTimer); oggiTimer = setInterval(function () { if (!document.hidden && fo.hidden) caricaOggi(); }, 20000); }
+  $('aggiungi-impegno').onclick = function () { tocco(); apriModulo(null, STATO.oggiData); };
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && $('t-oggi').classList.contains('su')) caricaOggi(); });
+
   // ---- il foglio: dettagli di una voce e modulo per scriverla o cambiarla ----
   function apriFoglio() { fo.hidden = false; document.body.style.overflow = 'hidden'; fo.scrollTop = 0; try { tg.BackButton.show(); tg.BackButton.onClick(chiudiFoglio); } catch (e) {} }
   function chiudiFoglio() { fo.hidden = true; fo.innerHTML = ''; document.body.style.overflow = ''; try { tg.BackButton.hide(); tg.BackButton.offClick(chiudiFoglio); } catch (e) {} }
@@ -558,6 +618,12 @@
   function riga(et, testo) { var r = el('div', 'riga-info'); r.appendChild(el('b', null, et + ': ')); r.appendChild(document.createTextNode(testo)); fo.appendChild(r); return r; }
   function apriVoce(e) {
     testaFoglio(e.titolo);
+    if (e.da === io || STATO.admin) {
+      var altri = el("div", "doppia"), bm = el("button", "gran", "Cambia questa voce"), be = el("button", "gran no sec", "Togli"); bm.type = be.type = "button";
+      bm.onclick = function () { tocco(); apriModulo(e, e.data); };
+      be.onclick = function () { conferma("Togliere questa voce dal calendario?", function () { chiamaJson("/api/evento/elimina", { id: e.id }).then(function () { chiudiFoglio(); avviso("Voce tolta", ""); aggiornaTutto(); }).catch(errAvviso("Non riesco")); }); };
+      altri.appendChild(bm); altri.appendChild(be); fo.appendChild(altri);
+    }
     riga('Quando', dataLunga(e.data) + (e.ora ? ', ore ' + e.ora : ' (orario da definire)'));
     if (e.luogo) riga('Dove', e.luogo);
     if (e.tipo === 'gara' && e.gara) {
@@ -573,21 +639,16 @@
     riga('Vengono', si.length ? si.join(', ') : 'nessuno ancora'); if (no.length) riga('Non vengono', no.join(', '));
     var mia = e.risposte[io] || '', due = el('div', 'doppia');
     var bs = el('button', 'gran' + (mia === 'si' ? ' on' : ''), 'Vengo'), bn = el('button', 'gran no' + (mia === 'no' ? ' on' : ''), 'Non vengo'); bs.type = bn.type = 'button';
-    function rispondi(v) { return function () { tocco(); chiamaJson('/api/evento/risposta', { id: e.id, risposta: mia === v ? '' : v }).then(function (j) { aggiornaVoce(j.evento); apriVoce(j.evento); }).catch(errAvviso('Non è partito')); }; }
+    function rispondi(v) { return function () { tocco(); chiamaJson('/api/evento/risposta', { id: e.id, risposta: mia === v ? '' : v }).then(function (j) { aggiornaVoce(j.evento); apriVoce(j.evento); caricaOggi(); }).catch(errAvviso('Non è partito')); }; }
     bs.onclick = rispondi('si'); bn.onclick = rispondi('no'); due.appendChild(bs); due.appendChild(bn); fo.appendChild(due);
-    if (e.da === io || STATO.admin) {
-      var altri = el('div', 'doppia'), bm = el('button', 'gran sec', 'Cambia'), be = el('button', 'gran no sec', 'Togli'); bm.type = be.type = 'button';
-      bm.onclick = function () { tocco(); apriModulo(e, e.data); };
-      be.onclick = function () { conferma('Togliere questa voce dal calendario?', function () { chiamaJson('/api/evento/elimina', { id: e.id }).then(function () { chiudiFoglio(); avviso('Voce tolta', ''); caricaMese(meseCorr); }).catch(errAvviso('Non riesco')); }); };
-      altri.appendChild(bm); altri.appendChild(be); fo.appendChild(altri);
-    }
-    fo.appendChild(el('p', 'aiuto', 'Scritta da ' + e.da));
     apriFoglio();
   }
+  function aggiornaTutto() { caricaOggi(); if (meseCorr) caricaMese(meseCorr); }
   function aggiornaVoce(e) { eventiMese = eventiMese.map(function (x) { return x.id === e.id ? e : x; }); }
   function apriModulo(e, data) {
     var f = e ? JSON.parse(JSON.stringify(e)) : { id: '', titolo: '', tipo: 'gara', data: data || STATO.oggiData, ora: '', luogo: '', note: '', portano: [], gara: null };
-    if (!f.gara) f.gara = { sesso: 'F', programma: 'Silver', modo: 'individuale', livelli: [], ginnaste: [] };
+    var iNome = null, sLiv = null;
+    if (!f.gara) f.gara ={ sesso: 'F', programma: 'Silver', modo: 'individuale', livelli: [], ginnaste: [] };
     testaFoglio(e ? 'Cambia la voce' : 'Nuova voce');
     function campo(et, tag, tipo, valore, extra) { var l = el('label', null, et), c = el(tag); if (tipo) c.type = tipo; c.value = valore || ''; if (extra) extra(c); fo.appendChild(l); fo.appendChild(c); return c; }
     var iTitolo = campo('Cosa', 'input', 'text', f.titolo, function (c) { c.maxLength = 80; c.placeholder = 'Per esempio: Gara con Sara'; });
@@ -618,7 +679,7 @@
         });
       }
       righe();
-      var agg = el('div', 'riga'), iN = el('input'), dl = el('datalist'), sL = el('select'), bA = el('button', 'chip', 'Aggiungi'); iN.placeholder = 'Nome'; iN.maxLength = 40; iN.setAttribute('list', 'elenco-ginnasti'); dl.id = 'elenco-ginnasti'; bA.type = 'button'; bA.style.flex = '0 0 auto';
+      var agg = el('div', 'riga'), iN = el('input'), dl = el('datalist'), sL = el('select'), bA = el('button', 'chip', 'Aggiungi ginnasta'); iNome = iN; sLiv = sL; iN.placeholder = 'Nome'; iN.maxLength = 40; iN.setAttribute('list', 'elenco-ginnasti'); dl.id = 'elenco-ginnasti'; bA.type = 'button'; bA.style.flex = '0 0 auto';
       (STATO.ginnasti || []).forEach(function (x) { var o = el('option'); o.value = x.nome; dl.appendChild(o); });
       var o0 = el('option', null, 'Livello'); o0.value = ''; sL.appendChild(o0); (STATO.livelli || []).forEach(function (l) { var o = el('option', null, l); o.value = l; sL.appendChild(o); });
       iN.onchange = function () { var t = (STATO.ginnasti || []).filter(function (x) { return x.nome === iN.value && x.livello; })[0]; if (t) sL.value = t.livello; };
@@ -626,16 +687,18 @@
       agg.appendChild(iN); agg.appendChild(sL); agg.appendChild(bA); boxGara.appendChild(agg); boxGara.appendChild(dl);
     }
     disegnaTipo(); disegnaGara();
-    var due = el('div', 'doppia'), bS = el('button', 'gran', e ? 'Salva' : 'Aggiungi'), bX = el('button', 'gran no sec', 'Annulla'); bS.type = bX.type = 'button'; bX.onclick = chiudiFoglio;
+    var due = el('div', 'doppia'), bS = el('button', 'gran', 'Salva la voce'), bX = el('button', 'gran no sec', 'Annulla'); bS.type = bX.type = 'button'; bX.onclick = chiudiFoglio;
     bS.onclick = function () {
       var titolo = iTitolo.value.replace(/\s+/g, ' ').trim();
       if (!titolo) { avviso('Manca il titolo', 'Scrivi cosa c’è in programma'); return; }
       if (!iData.value) { avviso('Manca il giorno', ''); return; }
+      // un nome scritto ma non aggiunto con il tasto "Aggiungi ginnasta" non si perde (era il difetto del 21/10/2026)
+      if (f.tipo === 'gara' && iNome && iNome.value.replace(/\s+/g, ' ').trim()) { f.gara.ginnaste.push({ nome: iNome.value.replace(/\s+/g, ' ').trim(), livello: sLiv ? sLiv.value : '' }); iNome.value = ''; }
       bS.disabled = true; tocco();
       var corpo = { id: f.id, titolo: titolo, tipo: f.tipo, data: iData.value, ora: iOra.value, luogo: iLuogo.value, note: iNote.value, portano: f.portano, gara: f.tipo === 'gara' ? f.gara : null };
       chiamaJson('/api/evento', corpo).then(function (j) {
         chiudiFoglio(); avviso(e ? 'Voce cambiata' : 'Voce aggiunta', j.evento.titolo);
-        giornoSel = j.evento.data; caricaMese(giornoSel.slice(0, 7));
+        giornoSel = j.evento.data; caricaMese(giornoSel.slice(0, 7)); caricaOggi();
       }).catch(function (x) { bS.disabled = false; avviso('Non è partito', String(x.message || x)); });
     };
     due.appendChild(bS); due.appendChild(bX); fo.appendChild(due);
@@ -706,7 +769,8 @@
     document.querySelectorAll('#barra button').forEach(function (b) { b.classList.toggle('su', b.getAttribute('data-tab') === nome); });
     try { sessionStorage.setItem('jarvis-mini-scheda', nome); } catch (e) {}
     clearInterval(chatTimer); chatTimer = null;
-    if (nome === 'oggi') caricaProm();
+    clearInterval(oggiTimer); oggiTimer = null;
+    if (nome === 'oggi') { caricaOggi(); avviaOggi(); }
     if (nome === 'cal' && !meseCorr) caricaMese((STATO.oggiData || '').slice(0, 7));
     if (nome === 'pres') caricaPres();
     if (nome === 'chat') { chatCarica(); chatTimer = setInterval(function () { if (!document.hidden) chatCarica(); }, 5000); }
@@ -726,7 +790,7 @@
   }
 
   // ---- avvio ----
-  var diag = 'pagina 18 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
+  var diag = 'pagina 19 · ' + (tg ? ('Telegram ' + tg.platform + ' v' + tg.version) : 'senza Telegram');
   window.onerror = function (m, s, l) { try { $('diag').textContent = 'errore: ' + m + ' (riga ' + l + ')'; } catch (e) {} };
   function bloccato(dettaglio) { $('blocco').hidden = false; $('app').hidden = true; $('barra').hidden = true; $('blocco-dettaglio').textContent = dettaglio || ''; $('diag') && ($('diag').textContent = diag); }
   if (!initData) { bloccato(diag + ' · senza firma di Telegram'); return; }
@@ -740,7 +804,7 @@
     $('saluto').textContent = saluto(s.chi, s.settimana); $('saluto').hidden = false;
     $('riga-settimana').textContent = s.settimana ? 'Siamo nella settimana ' + s.settimana + ' del giro.' : 'La settimana del giro non è ancora impostata.';
     riempi($('di-chi'), nomi, false); riempi($('per-chi'), nomi, true);
-    disegna(); $('diag').textContent = diag; badge(s.nonLette || 0); caricaProm();
+    disegna(); $('diag').textContent = diag; badge(s.nonLette || 0); caricaOggi(); avviaOggi();
     try { var ult = sessionStorage.getItem('jarvis-mini-scheda'); if (ult && $('t-' + ult)) scheda(ult); } catch (e) {}
   }).catch(function (e) { bloccato(diag + ' · niente rete: ' + String(e.message || e)); });
 })();
