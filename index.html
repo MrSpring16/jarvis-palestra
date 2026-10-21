@@ -118,10 +118,10 @@
   .giorno-c.vuoto { visibility: hidden; } .giorno-c.oggi { border-color: var(--accento); box-shadow: 0 0 8px rgba(242,179,61,.4); }
   .giorno-c.sel { background: linear-gradient(180deg, rgba(242,179,61,.3), rgba(242,179,61,.1)); border-color: var(--accento); }
   .punti { display: flex; justify-content: center; gap: 3px; margin-top: 4px; flex-wrap: wrap; }
-  .punto { width: 8px; height: 8px; border-radius: 50%; background: var(--tenue); } .punto.gara { background: var(--accento); box-shadow: 0 0 6px var(--accento); } .punto.allenamento { background: var(--ok); }
+  .punto { width: 8px; height: 8px; border-radius: 50%; background: var(--tenue); } .punto.gara { background: var(--accento); box-shadow: 0 0 6px var(--accento); } .punto.allenamento { background: var(--ok); } .punto.collegiale { background: #6fc3ff; box-shadow: 0 0 6px #6fc3ff; }
   .legenda { display: flex; gap: 14px; margin-top: 8px; color: var(--tenue); font-size: 12px; } .legenda i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
   .voce { display: block; width: 100%; text-align: left; padding: 11px 12px; margin: 8px 0; background: rgba(0,0,0,.28); border: 1px solid var(--bordo); border-left: 3px solid var(--tenue); border-radius: 3px; cursor: pointer; }
-  .voce.gara { border-left-color: var(--accento); } .voce.allenamento { border-left-color: var(--ok); }
+  .voce.gara { border-left-color: var(--accento); } .voce.allenamento { border-left-color: var(--ok); } .voce.collegiale { border-left-color: #6fc3ff; }
   .voce .t { font-size: 16px; font-weight: 600; } .voce .m { margin-top: 3px; color: var(--tenue); font: 600 12px var(--font-hud); letter-spacing: .08em; text-transform: uppercase; }
   .foglio { position: fixed; inset: 0; z-index: 20; overflow-y: auto; background: var(--sfondo); padding: 12px 14px calc(40px + env(safe-area-inset-bottom)); }
   .foglio .chiudi-f { position: sticky; top: 0; float: right; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--bordo-forte); background: rgba(20,8,8,.9); color: var(--accento-testo); font-size: 18px; cursor: pointer; }
@@ -207,7 +207,7 @@
   <section>
     <div class="mese-testa"><button type="button" id="mese-prec" aria-label="Mese prima">&#8249;</button><span class="titolo" id="mese-titolo"></span><button type="button" id="mese-succ" aria-label="Mese dopo">&#8250;</button></div>
     <div class="griglia" id="griglia"></div>
-    <div class="legenda"><span><i style="background:var(--accento)"></i>Gara</span><span><i style="background:var(--ok)"></i>Allenamento</span><span><i style="background:var(--tenue)"></i>Altro</span></div>
+    <div class="legenda"><span><i style="background:var(--accento)"></i>Gara</span><span><i style="background:var(--ok)"></i>Allenamento</span><span><i style="background:#6fc3ff"></i>Collegiale</span><span><i style="background:var(--tenue)"></i>Altro</span></div>
   </section>
   <section id="giorno-sez" hidden>
     <h2 id="giorno-titolo">Giorno</h2>
@@ -647,7 +647,7 @@
     var boxGara = el('div'); fo.appendChild(boxGara);
     var iNote = campo('Note', 'textarea', null, f.note, function (c) { c.maxLength = 400; });
     gruppoChips(cVa, nomi.map(function (n) { return [n, n]; }), function (v) { return f.portano.indexOf(v) >= 0; }, function (v) { var i = f.portano.indexOf(v); if (i >= 0) f.portano.splice(i, 1); else f.portano.push(v); });
-    function disegnaTipo() { gruppoChips(cTipo, [['gara', 'Gara'], ['allenamento', 'Allenamento'], ['altro', 'Altro']], function (v) { return f.tipo === v; }, function (v) { f.tipo = v; disegnaGara(); }); }
+    function disegnaTipo() { gruppoChips(cTipo, [['gara', 'Gara'], ['allenamento', 'Allenamento'], ['collegiale', 'Collegiale'], ['altro', 'Altro']], function (v) { return f.tipo === v; }, function (v) { f.tipo = v; disegnaGara(); }); }
     function disegnaGara() {
       boxGara.innerHTML = ''; if (f.tipo !== 'gara') return;
       var g = f.gara;
